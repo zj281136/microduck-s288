@@ -134,8 +134,9 @@ IMU 当前参考配置为 I2C 总线 1、地址 `0x6a`，实际地址和电平�
 
 ## 7. 安装并单独验证 I2C IMU
 
-![LSM6DSV16X 实际安装近照](../assets/images/imu/lsm6dsv16x-installed.jpg)
-
+<p align="center">
+  <img src="../assets/images/imu/lsm6dsv16x-installed.jpg" alt="LSM6DSV16X 实际安装近照" width="360">
+</p>
 这版 LSM6DSV16X 使用 I2C 总线 1，地址为 `0x6a` 或 `0x6b`，按实际扫描结果选择。当前驱动没有自动换轴，传感器 +X/+Y/+Z 必须分别对应机器人前/左/上，并固定在与躯干刚性连接的位置。
 
 完整的安装、I2C 接线、系统配置与独立读数命令已经补在[软件安装教程第 5 节](03_software_setup/environment_setup.md#5-安装-imu并通过-i2c-与树莓派通信)。先读取芯片 ID，再看静止与缓慢倾斜时的 gyro、accel 和 gravity。独立检测不控制电机，不需要通过启动站立程序来测试 IMU。

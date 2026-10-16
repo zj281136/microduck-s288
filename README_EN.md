@@ -8,7 +8,9 @@ Microduck-S288 is a S288 version of Pollen Robotics’ little walking duck. It b
 
 If you would like to build one too, start with the parts and assembly guide. If you already have a robot, the calibration and deployment chapters take you toward a first protected stand. The training path is there when you want to explore a gait of your own.
 
-![Microduck-S288 assembled robot](assets/images/robot/microduck-s288-assembled.jpg)
+<p align="center">
+  <img src="assets/images/robot/microduck-s288-assembled.jpg" alt="Microduck-S288 assembled robot" width="360">
+</p>
 <!-- TODO: Add a matching-version demonstration video with power/support conditions -->
 
 ## Features
