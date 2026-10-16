@@ -1,0 +1,23 @@
+[
+  {
+    "file": "assets/images/robot/microduck-s288-assembled.jpg",
+    "original_filename": "微信图片_20261016150218_46_2.jpg",
+    "description": "整机实物",
+    "source": "项目作者提供的实物照片",
+    "sha256": "2bc68f2dce9c0671e9132b47379c387a24935945658f3d22add1fdc5f5d7a6b8"
+  },
+  {
+    "file": "assets/images/assembly/microduck-s288-parts.jpg",
+    "original_filename": "微信图片_20261016150219_47_2.jpg",
+    "description": "结构零件平铺",
+    "source": "项目作者提供的实物照片",
+    "sha256": "fb41a2069023a5790b570aeafea3c20731198ae1625fd98817d23937fed8d801"
+  },
+  {
+    "file": "assets/images/imu/lsm6dsv16x-installed.jpg",
+    "original_filename": "微信图片_20261016175145_48_2.jpg",
+    "description": "IMU 实际安装",
+    "source": "项目作者提供的实物照片",
+    "sha256": "f06a7f4809d8695f5b3545ba0d067798f08a56f78699c0dcc1b59b5b59daa924"
+  }
+]

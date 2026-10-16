@@ -1,0 +1,42 @@
+{
+  "checkpoint": "model_9999.pt (optional release checkpoint; not included)",
+  "iteration": 9999,
+  "task": "Mjlab-Velocity-Flat-S288-v0-BacklashDR-RotorOnly61D-MicroDuck",
+  "onnx": "microduck_s288_v0_backlash_dr_rotor_pd_m1.onnx",
+  "onnx_sha256": "b04484f1432d6199bc7c9e898fc52229462cdd55d32bdf4c39e11da6ae482f09",
+  "checkpoint_sha256": "784ebef274166f6668cde37198a8acb991b96b110ab23a6d9bbd57eaaa9b22e7",
+  "deployment_entry": "deploy_microduck_s288_v0_backlash_dr_real.py",
+  "deployment_position_target_source": "rotor",
+  "input_shape": [
+    1,
+    61
+  ],
+  "output_shape": [
+    1,
+    14
+  ],
+  "obs_normalizer_baked": true,
+  "kp_sdk": 0.00013545,
+  "kd_sdk": 3.74e-06,
+  "simulation_torque_limit_nm_12v": 0.55,
+  "torch_onnx_max_abs_error_128_real_observations": 1.564621925354004e-07,
+  "metadata": {
+    "s288_reference_run": "2026-10-11_14-53-05_s288_v0_airtime3_upright005_10000",
+    "s288_backlash_initial_position": "uniform_within_episode_limits",
+    "s288_backlash_half_width_deg": "1.0,2.0",
+    "joint_names": "left_hip_yaw,left_hip_roll,left_hip_pitch,left_knee,left_ankle,neck_pitch,head_pitch,head_yaw,head_roll,right_hip_yaw,right_hip_roll,right_hip_pitch,right_knee,right_ankle",
+    "default_joint_pos": "0.000,-0.091,-0.302,0.042,0.312,0.172,0.264,0.000,0.000,0.000,0.091,0.302,-0.042,-0.312",
+    "s288_qdot_extra_delay_steps": "0",
+    "s288_kd_sdk": "3.74e-06",
+    "observation_names": "base_ang_vel,projected_gravity,joint_pos,joint_vel,actions,command,head_command,body_command",
+    "joint_damping": "0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000",
+    "run_path": "model_9999.pt",
+    "command_names": "twist,head_pose,body_pose",
+    "joint_stiffness": "1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000",
+    "action_scale": "1.0",
+    "s288_observation_contract": "s288_v0_backlash_dr_rotor_pd_m1_61d_v1",
+    "s288_dynamics_variant": "v0_backlash_dr_rotor_pd_m1",
+    "s288_kp_sdk": "0.00013545",
+    "s288_position_source": "rotor"
+  }
+}

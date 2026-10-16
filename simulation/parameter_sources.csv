@@ -1,0 +1,16 @@
+parameter,value,unit,source_type,source,limitation
+gear_ratio,288.35,dimensionless,assumed,shared bus constants/actuator cfg,configured value; independent per-motor identification TODO
+kp_sdk,1.3545e-4,SDK,identified,S288 M1/selected reference recipe,SDK units; effective PD includes gear^2 and M1 ratio
+kd_sdk,3.74e-6,SDK,identified,S288 M1/selected reference recipe,14-motor variation not fully identified
+output_limit_at_12v,0.55,Nm,assumed,selected V0 task envelope,simulation limit; not a manufacturer specification
+voltage_range,11:12,V,assumed,configured DR; operating observations,sag identification not established
+physics_dt,0.005,s,assumed,environment cfg,configured not a real sampling guarantee
+policy_rate,50,Hz,assumed,decimation/real loop configuration,actual frequency must be measured
+command_lag,0:5,physics step,assumed,dispatch logs-informed transport envelope,not whole mechanical phase delay
+backlash_half_width,1:2,deg,assumed,episode DR task,not identified on all14 motors
+passive_damping,0.01,model units,assumed,XL330 reference structure,not S288 measured damping
+passive_armature,0.001,kg m^2,assumed,XL330 reference structure,engineering baseline
+battery_mass,155,g,measured,weight record then model override,installed ancillary mass TODO
+head_pi_mass,18,g,measured,weight record then model override,mounting mass accounting TODO
+base_link_inertias,see MJCF,SI,CAD-derived,existing model export plus V0 overrides,not full-machine identified inertias
+M1 friction/ratio/armature,see s288_m1.json,model units,identified,fitted BAM parameter file,dataset/provenance publication review pending

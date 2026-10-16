@@ -1,0 +1,25 @@
+id,category,name,model,specification,quantity,unit_price,subtotal,purchase_url,alternative_conditions,required,assembly_step,notes,currency,price_date,interface,cable_length,solder_or_crimp,evidence
+M01,actuator,S288 motor,S288,full suffix/firmware TODO,14,,,,,required,legs/head,,,,,,,code: 14 motor IDs
+C01,compute,Raspberry Pi Zero 2 W,Zero 2 W,,1,,,,,required,body/head,,,,,,,configuration; model payload18g
+C02,communication,USB motor bus controller,,6Mbps protocol; board model/firmware TODO,1,,,,,required,wiring,,,,USB / motor bus: pinout TODO,,,driver source; physical model TODO
+I01,sensor,IMU module,LSM6DSV16X,I2C; reference address0x6a,1,,,,,required,IMU,,,,I2C; board voltage/pinout TODO,,,driver configuration
+P01,power,Battery,,model155g; recorded24x31x73mm; electrical rating TODO,1,,,,,required,power,,,,,,,weight record/configuration
+P02,power,Bench supply,,reference operating12V; current rating TODO,1,,,,,alternative,power,bench supply and battery are alternative power paths,,,,,,operating configuration; supply part TODO
+P03,power,Pi power converter,,model/output/current TODO,,,,,,required,power,,,,,,,TODO
+P04,protection,Switch / fuse / emergency isolation,,rating and circuit TODO,,,,,,required,power,,,,,,,TODO
+W01,cable,Motor harness and connectors,,connector/length/branch topology TODO,,,,,,required,wiring,off-the-shelf and solder-free status not yet verified,,,,,,TODO
+W02,cable,USB cable,,controller connector and length TODO,1,,,,,required,controller,,,,,,,TODO
+W03,cable,I2C cable and adapters,,Pi/module pinout and voltage TODO,,,,,,required,IMU,,,,,,,TODO
+S01,storage,Pi storage card,,capacity/image TODO,1,,,,,required,software,,,,,,,TODO
+F01,printed,Original-head S288 print set,,print-ready revision/parts quantities TODO,1,,,,,required,mechanical,simulation meshes are not a print-ready set,,,,,,TODO
+B01,fastener,Foot screws,,diameter/length/head/thread TODO,6,,,,,required,feet,quantity derived from weight record; reconcile against final CAD,,,,,,weight record; not a complete verified purchasing specification
+B02,fastener,Lower-leg screws,,diameter/length/head/thread TODO,8,,,,,required,lower legs,quantity derived from weight record; reconcile against final CAD,,,,,,weight record; not a complete verified purchasing specification
+B03,fastener,Upper-leg screws,,diameter/length/head/thread TODO,16,,,,,required,upper legs,quantity derived from weight record; reconcile against final CAD,,,,,,weight record; not a complete verified purchasing specification
+B04,fastener,Trunk screws,,diameter/length/head/thread TODO,24,,,,,required,trunk,quantity derived from weight record; reconcile against final CAD,,,,,,weight record; not a complete verified purchasing specification
+B05,fastener,Neck screws,,diameter/length/head/thread TODO,12,,,,,required,neck,quantity derived from weight record; reconcile against final CAD,,,,,,weight record; not a complete verified purchasing specification
+B06,fastener,Head screws,,diameter/length/head/thread TODO,11,,,,,required,head,quantity derived from weight record; reconcile against final CAD,,,,,,weight record; not a complete verified purchasing specification
+B07,mechanical,Bearings / inserts / nuts / washers,,individual types/counts TODO,,,,,,required,mechanical,,,,,,,TODO
+T01,tools,Assembly tools,,driver sizes/measurement tools TODO,,,,,,required,assembly,,,,,,,TODO
+T02,consumable,Printing / mounting consumables,,material/fixings TODO,,,,,,required,assembly,,,,,,,TODO
+T03,fixture,Robot support / fall-arrest fixture,,fixing and load capacity TODO,1,,,,,required,calibration/deployment,,,,,,,TODO
+O01,spares,Spare motor/harness,,compatible batch and connector TODO,,,,,,optional,maintenance,,,,,,,TODO

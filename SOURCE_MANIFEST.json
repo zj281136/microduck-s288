@@ -1,0 +1,62 @@
+[
+  {
+    "source": "src/mjlab_microduck/tasks/mdp.py",
+    "release": "software/training/src/mjlab_microduck/tasks/mdp.py",
+    "sha256": "ef843d47a38f8158bf7e9acb81047aa42737f12b769ea77ddd37c952c92104b4"
+  },
+  {
+    "source": "src/mjlab_microduck/tasks/s288_v0_contract.py",
+    "release": "software/training/src/mjlab_microduck/tasks/s288_v0_contract.py",
+    "sha256": "0a7d7e45dcb92393b7598a614499c21f3011154c68e0e85306209e6dd79f7cc0"
+  },
+  {
+    "source": "src/mjlab_microduck/tasks/__init__.py",
+    "release": "software/training/src/mjlab_microduck/tasks/__init__.py",
+    "sha256": "5dc6cc2238cd1bbd562473a6b727cff914f4577a371789c2240805f8a1e44530"
+  },
+  {
+    "source": "src/mjlab_microduck/tasks/microduck_s288_v0_backlash_dr_env_cfg.py",
+    "release": "software/training/src/mjlab_microduck/tasks/microduck_s288_v0_backlash_dr_env_cfg.py",
+    "sha256": "7cfea1111f486e8c9c7aabbff6dba6e2732227bc990a3b22bd8531b70afd12e3"
+  },
+  {
+    "source": "src/mjlab_microduck/tasks/microduck_velocity_env_cfg.py",
+    "release": "software/training/src/mjlab_microduck/tasks/microduck_velocity_env_cfg.py",
+    "sha256": "8c933d1e1ca300be9022c2860830390c7600b4456abae083e229eb88e7a02263"
+  },
+  {
+    "source": "src/mjlab_microduck/tasks/symmetry.py",
+    "release": "software/training/src/mjlab_microduck/tasks/symmetry.py",
+    "sha256": "efbde220a52af9f4d6d1737a86d8b273340bd1a1f90dfeba1bebfe6703faf3d1"
+  },
+  {
+    "source": "src/mjlab_microduck/robot/microduck_constants.py",
+    "release": "software/training/src/mjlab_microduck/robot/microduck_constants.py",
+    "sha256": "b75b6234da528b746991ecbc01382a42c4567b71d0837dfe943698333d0a9d9c"
+  },
+  {
+    "source": "src/mjlab_microduck/actuator/__init__.py",
+    "release": "software/training/src/mjlab_microduck/actuator/__init__.py",
+    "sha256": "002b3fcc9df9135550b49d859c94c5dcc1ec2d40c9bfa0f71afcf4ebc2e143bc"
+  },
+  {
+    "source": "src/mjlab_microduck/actuator/s288_bam_m1.py",
+    "release": "software/training/src/mjlab_microduck/actuator/s288_bam_m1.py",
+    "sha256": "7459c6ca8b3ed50f617936fa1700994e586b8257f63580e47657560e3910aa3b"
+  },
+  {
+    "source": "src/mjlab_microduck/actuator/friction_dr_bam.py",
+    "release": "software/training/src/mjlab_microduck/actuator/friction_dr_bam.py",
+    "sha256": "3329b9b0a10bbe062e0c2e33637d4853bab2f5858a2df288672cf42fc315e81c"
+  },
+  {
+    "source": "src/mjlab_microduck/actuator/j288_pd.py",
+    "release": "software/training/src/mjlab_microduck/actuator/j288_pd.py",
+    "sha256": "6daef023c7a73824c29abfedd52b2dac218d3de62015bc3c8a74de2ec6313e27"
+  },
+  {
+    "source": "src/mjlab_microduck/tasks/backlash.py",
+    "release": "software/training/src/mjlab_microduck/tasks/backlash.py",
+    "sha256": "f5987182f26ed07c9b2a6a0545cc667e2b4b8e56115950e3daec6ab1dcf750df"
+  }
+]

@@ -1,0 +1,148 @@
+{
+  "format_version": 1,
+  "robot": "microduck_s288",
+  "reference_pose": "mujoco_reset_qpos_zero",
+  "position_mapping": "q_model = model_home_rad + direction * wrap_pi(q_sensor - encoder_home_rad)",
+  "joints": [
+    {
+      "joint_name": "head_roll",
+      "motor_id": 0,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "head_yaw",
+      "motor_id": 1,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "head_pitch",
+      "motor_id": 2,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "neck_pitch",
+      "motor_id": 3,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "right_hip_yaw",
+      "motor_id": 4,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "left_hip_yaw",
+      "motor_id": 5,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "left_hip_roll",
+      "motor_id": 6,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "left_hip_pitch",
+      "motor_id": 7,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "left_knee",
+      "motor_id": 8,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "left_ankle",
+      "motor_id": 9,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "right_hip_roll",
+      "motor_id": 10,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "right_hip_pitch",
+      "motor_id": 11,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "right_knee",
+      "motor_id": 12,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    },
+    {
+      "joint_name": "right_ankle",
+      "motor_id": 13,
+      "model_home_rad": 0.0,
+      "encoder_home_rad": null,
+      "direction": null,
+      "capture_std_rad": null,
+      "sample_count": 0,
+      "position_source": "rotor"
+    }
+  ]
+}

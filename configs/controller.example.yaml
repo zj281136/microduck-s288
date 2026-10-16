@@ -1,0 +1,9 @@
+schema_version: 1
+documentation_only: true
+serial_port: null
+baudrate: 6000000
+controller_model: null
+controller_firmware: null
+i2c_bus: 1
+imu_address: '0x6a'
+power_pinout: null

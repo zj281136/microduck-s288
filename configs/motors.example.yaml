@@ -1,0 +1,77 @@
+schema_version: 1
+documentation_only: true
+position_source: rotor
+gear_ratio: 288.35
+kp_sdk: 0.00013545
+kd_sdk: 3.74e-06
+motors:
+- joint: head_roll
+  bus_id: 0
+  model: null
+  firmware: null
+  direction: null
+- joint: head_yaw
+  bus_id: 1
+  model: null
+  firmware: null
+  direction: null
+- joint: head_pitch
+  bus_id: 2
+  model: null
+  firmware: null
+  direction: null
+- joint: neck_pitch
+  bus_id: 3
+  model: null
+  firmware: null
+  direction: null
+- joint: right_hip_yaw
+  bus_id: 4
+  model: null
+  firmware: null
+  direction: null
+- joint: left_hip_yaw
+  bus_id: 5
+  model: null
+  firmware: null
+  direction: null
+- joint: left_hip_roll
+  bus_id: 6
+  model: null
+  firmware: null
+  direction: null
+- joint: left_hip_pitch
+  bus_id: 7
+  model: null
+  firmware: null
+  direction: null
+- joint: left_knee
+  bus_id: 8
+  model: null
+  firmware: null
+  direction: null
+- joint: left_ankle
+  bus_id: 9
+  model: null
+  firmware: null
+  direction: null
+- joint: right_hip_roll
+  bus_id: 10
+  model: null
+  firmware: null
+  direction: null
+- joint: right_hip_pitch
+  bus_id: 11
+  model: null
+  firmware: null
+  direction: null
+- joint: right_knee
+  bus_id: 12
+  model: null
+  firmware: null
+  direction: null
+- joint: right_ankle
+  bus_id: 13
+  model: null
+  firmware: null
+  direction: null

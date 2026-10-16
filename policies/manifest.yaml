@@ -1,0 +1,117 @@
+schema_version: 1
+null_meaning: TODO / not supplied; never an auto-detected value
+policies:
+- name: microduck_s288_v0_backlash_dr_rotor_pd_m1
+  configuration_id: original_head_s288_v0
+  repository_path: software/deployment/teleop/scripts/models/microduck_s288_v0_backlash_dr_rotor_pd_m1.onnx
+  download: null
+  sha256: b04484f1432d6199bc7c9e898fc52229462cdd55d32bdf4c39e11da6ae482f09
+  hardware_revision: null
+  mjcf_revision:
+    base_file: software/training/src/mjlab_microduck/robot/microduck/robot_walk_s288_v1.xml
+    base_sha256: a0a9abdf173e54ac3bc1bea30f9938bda3e573531033ef7bdb482810f79454cb
+    spec_factory: get_s288_v0_backlash_dr_spec
+    factory_file_sha256: b75b6234da528b746991ecbc01382a42c4567b71d0837dfe943698333d0a9d9c
+  deployment_revision:
+    entry: deploy_microduck_s288_v0_backlash_dr_real.py
+    entry_sha256: d3aa323c02f608802e79298aa31778465821188f0dcb915fa29053f36c74e4c0
+    full_revision: null
+  task: Mjlab-Velocity-Flat-S288-v0-BacklashDR-RotorOnly61D-MicroDuck
+  checkpoint:
+    name: model_9999.pt
+    iteration: 9999
+    sha256: 784ebef274166f6668cde37198a8acb991b96b110ab23a6d9bbd57eaaa9b22e7
+    download: null
+    in_repository: false
+  opset: 18
+  input:
+    name: obs
+    shape:
+    - 1
+    - 61
+    dtype: float32
+  output:
+    name: actions
+    shape:
+    - 1
+    - 14
+    dtype: float32
+  joint_names: &id001
+  - left_hip_yaw
+  - left_hip_roll
+  - left_hip_pitch
+  - left_knee
+  - left_ankle
+  - neck_pitch
+  - head_pitch
+  - head_yaw
+  - head_roll
+  - right_hip_yaw
+  - right_hip_roll
+  - right_hip_pitch
+  - right_knee
+  - right_ankle
+  observation:
+    dimensions: 61
+    names:
+    - base_ang_vel
+    - projected_gravity
+    - joint_pos
+    - joint_vel
+    - actions
+    - command
+    - head_command
+    - body_command
+    normalization: baked_into_ONNX_EmpiricalNormalization
+    external_history_frames: 1
+    recurrent_hidden_state: false
+    layout:
+    - name: gyro
+      start: 0
+      end: 3
+    - name: projected_gravity
+      start: 3
+      end: 6
+    - name: q_rotor_minus_home
+      start: 6
+      end: 20
+    - name: qdot_rotor
+      start: 20
+      end: 34
+    - name: last_action
+      start: 34
+      end: 48
+    - name: velocity_command
+      start: 48
+      end: 51
+    - name: head_command
+      start: 51
+      end: 55
+    - name: body_command
+      start: 55
+      end: 61
+  action:
+    dimensions: 14
+    names: *id001
+    scale: 1.0
+    meaning: HOME + action; then existing target processing
+  control_frequency_hz: 50
+  pd_config:
+    kp_sdk: 0.00013545
+    kd_sdk: 3.74e-06
+    gear_ratio: 288.35
+    feedback: rotor
+    simulation_limit_nm_at_12v: 0.55
+  calibration_format_version: 1
+  validation_status: historical_offline_loader_and_numeric_record; current_static_file_audit
+  numeric_record:
+    max_abs_error: 1.564621925354004e-07
+    samples: 128
+    source: historical sidecar manifest; not rerun
+  pending:
+  - hardware revision/firmware
+  - CAD and cable pinout
+  - fresh install
+  - trimmed export E2E
+  - matching ONNX/MuJoCo closed-loop
+  - independent machine hardware acceptance

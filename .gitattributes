@@ -1,0 +1,6 @@
+*.stl binary
+*.STL binary
+*.onnx binary
+*.png binary
+*.jpg binary
+*.mp4 binary
