@@ -72,11 +72,13 @@
 <p align="center">
   <img src="../assets/images/motors/unitree-s288-bus-wiring.png" alt="宇树官方三组电机并联接入单总线模块的实物照片" width="520">
 </p>
+
 *图 1：分成三组连接的电机与总线模块。来源：宇树官方文档。*
 
 <p align="center">
   <img src="../assets/images/motors/unitree-s288-bus-branches.png" alt="宇树官方单总线三分支、每支路五颗电机的连接拓扑" width="360">
 </p>
+
 *图 2：3 并 5 串拓扑，图中的 15 颗电机使用 ID 0–14。来源：宇树官方文档。*
 
 本项目整机使用 **15 颗 S288，总线 ID 为 0–14**。其中 ID 0–13 的 14 个关节参与当前 RL，ID 14 为非 RL 附加舵机。接线与全总线测试覆盖全部 15 颗，训练和策略控制仍保持 14 个关节；关节位置与 ID 按本项目编号表对应。
@@ -106,6 +108,7 @@
 <p align="center">
   <img src="../assets/images/imu/lsm6dsv16x-module-dimensions.png" alt="模块尺寸与轴向" width="300">
 </p>
+
 安装、I2C 配置及不控制电机的独立检测步骤见[软件安装教程第 5 节](03_software_setup/environment_setup.md#5-安装-imu并通过-i2c-与树莓派通信)。
 
 <!-- TODO: 插入IMU板载轴、机器人轴与安装方向的对应照片 -->

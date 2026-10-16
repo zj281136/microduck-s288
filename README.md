@@ -10,6 +10,7 @@
 <p align="center">
   <img src="assets/images/robot/microduck-s288-assembled.jpg" alt="Microduck-S288 整机实物" width="360">
 </p>
+
 *装配完成的 Microduck-S288。*
 
 <!-- 待补：同版本站立、行走和转向视频。 -->
@@ -19,6 +20,7 @@
 <p align="center">
   <img src="assets/images/community/xiaohongshu-group-qr.jpg" alt="小红书赛博鸭友群二维码" width="320">
 </p>
+
 *群聊二维码有效期至 2026 年 11 月 13 日，失效后会更新。*
 
 

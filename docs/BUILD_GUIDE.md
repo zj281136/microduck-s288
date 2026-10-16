@@ -34,6 +34,7 @@ STL 与可编辑零件的下载入口：
 <p align="center">
   <img src="../assets/images/assembly/microduck-s288-parts.jpg" alt="Microduck-S288 部分结构零件与舵机" width="520">
 </p>
+
 *图中展示部分零件，完整数量和左右件以装配图、BOM 为准。*
 
 ## 3. 给电机设置 ID，再贴上关节名称
@@ -97,11 +98,13 @@ USB 接到电脑不等于电机已经有动力供电：电池这一支接通信�
 <p align="center">
   <img src="../assets/images/motors/unitree-s288-bus-wiring.png" alt="宇树官方三组电机并联接入单总线模块的实物照片" width="520">
 </p>
+
 *图 1：分成三组连接的电机与总线模块。来源：宇树官方文档。*
 
 <p align="center">
   <img src="../assets/images/motors/unitree-s288-bus-branches.png" alt="宇树官方单总线三分支、每支路五颗电机的连接拓扑" width="360">
 </p>
+
 *图 2：3 并 5 串拓扑，图中的 15 颗电机使用 ID 0–14。来源：宇树官方文档。*
 
 本项目整机使用 **15 颗 S288，总线 ID 为 0–14**。其中 ID 0–13 的 14 个关节参与当前 RL，ID 14 为非 RL 附加舵机。接线与全总线测试覆盖全部 15 颗，训练和策略控制仍保持 14 个关节；关节位置与 ID 按本项目编号表对应。
@@ -327,6 +330,7 @@ echo "probe exit code: $?"
 <p align="center">
   <img src="../assets/images/imu/lsm6dsv16x-installed.jpg" alt="LSM6DSV16X 在机体内部的安装近照" width="360">
 </p>
+
 这版没有采用原版 `imu_to_dxl`，IMU 直接通过 I2C 与树莓派通信：Pi 的物理 3 脚（GPIO2/SDA1）接模块 H3.4 `SDA/MOSI`，物理 5 脚（GPIO3/SCL1）接 H3.5 `SCL/SCLK`，物理 6 脚接 H3.2 `GND`。H3.3 `SA0/MISO` 接地选择 `0x6a`。模块 H3.1 `VCC` 接 Pi 物理 1 脚（3.3 V），与本项目实物接法一致。断电后接线，不要把 5 V 接入 I2C 信号脚。安装、接口开启、地址检测与独立读数的完整步骤已放在[软件安装教程的第 5 节](03_software_setup/environment_setup.md#5-安装-imu并通过-i2c-与树莓派通信)。
 
 IMU 要固定在与躯干刚性连接的位置，不能随头部或腿部单独转动。当前驱动没有自动换轴，安装时将传感器 **+X 对准前方、+Y 对准左侧、+Z 对准上方**。模块固定平整，板背绝缘，线束留余量并固定，避免拉扯接口。

@@ -9,6 +9,7 @@
 <p align="center">
   <img src="unitree-s288-bus-wiring.png" alt="三组电机与总线模块的实物接线照片" width="520">
 </p>
+
 - [官方原图](https://doc-cdn.unitree.com/static/2026/10/13/05cf6666e1e748b4aeb27919369e007c_1772x1328.png)
 - SHA256：`279dece1348eafcdaf3c18a5f1de16054e8ae9b6e10e5757ae956a185341f450`
 
@@ -17,6 +18,7 @@
 <p align="center">
   <img src="unitree-s288-bus-branches.png" alt="单总线 3 并 5 串连接拓扑" width="360">
 </p>
+
 - [官方原图](https://doc-cdn.unitree.com/static/2026/10/16/55da64ea0774473e8d9c8cf57cd1dcc0_740x867.png)
 - SHA256：`babae52d245acdd68d327832367eaa562b7c37f88eeb72bce64686d6b730bbc6`
 

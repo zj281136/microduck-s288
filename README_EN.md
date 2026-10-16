@@ -11,6 +11,7 @@ If you would like to build one too, start with the parts and assembly guide. If 
 <p align="center">
   <img src="assets/images/robot/microduck-s288-assembled.jpg" alt="Microduck-S288 assembled robot" width="360">
 </p>
+
 <!-- TODO: Add a matching-version demonstration video with power/support conditions -->
 
 ## Features

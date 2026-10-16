@@ -196,6 +196,7 @@ IMU 测量的是它自己所在位置的运动。我们需要它反映躯干状�
 <p align="center">
   <img src="../../assets/images/imu/lsm6dsv16x-installed.jpg" alt="机体内部的 LSM6DSV16X 安装位置与接线" width="360">
 </p>
+
 *实物照片用于说明安装位置；各根线的功能按端子定义和接线表核对。*
 
 当前驱动 `teleop/robot_control/imu/lsm6dsv16x.py` **没有安装旋转矩阵或自动换轴功能**，直接按下面的对应关系读取传感器：
@@ -215,6 +216,7 @@ IMU 测量的是它自己所在位置的运动。我们需要它反映躯干状�
 <p align="center">
   <img src="../../assets/images/imu/lsm6dsv16x-module-dimensions.png" alt="LSM6DSV16X 模块尺寸与传感器轴向" width="300">
 </p>
+
 这张图用于辨认模块尺寸和传感器轴，不是机器人安装照片。安装后仍要完成后面的姿态检查。
 
 ### 5.2 断电后接好供电、I2C 和地址选择线
@@ -257,6 +259,7 @@ SDA/SCL 已分别通过 R1/R2（10 kΩ）上拉到板内 3V3。不要再把信�
 <p align="center">
   <img src="../../assets/images/imu/lsm6dsv16x-module-schematic.png" alt="LSM6DSV16X 模块原理图，包含 H3 接口、上拉电阻和稳压电路" width="600">
 </p>
+
 需要放大看网络连接时，打开[原理图 PDF](../../hardware/imu/lsm6dsv16x/module-schematic.pdf)。上面的接法依据这份模块资料，换其他厂家的模块时重新核对端子定义。Zero 2 W 如果没有安装排针，先准备可靠连接，不把线松插在焊孔里。
 
 模块另一侧的 H2 接口是 `SDX/SCX/INT2`，不是本教程连接树莓派的主 I2C 端口。CS 拉高启用 I2C，SA0 接地对应 `0x6a`；若选择 `0x6b`，SA0 应置于板内 I/O 电源的高电平。接口说明可查项目内保存的[芯片手册第 21–22 页](../../hardware/imu/lsm6dsv16x/lsm6dsv16x-datasheet.pdf)。
