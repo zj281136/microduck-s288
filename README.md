@@ -23,6 +23,12 @@
 
 *群聊二维码有效期至 2026 年 11 月 13 日，失效后会更新。*
 
+<p align="center">
+  <img src="assets/images/community/wechat-group-qr.jpg" alt="微信小鸭复刻群二维码" width="320">
+</p>
+
+*微信群：小鸭复刻群。*
+
 
 
 mcroduck整机使用 **15 个 S288**。其中左右腿各 5 个、颈部和头部 4 个，共 **14 个关节参与 RL 训练与策略控制**；第 15 个舵机不参与当前 RL。主控是 **Raspberry Pi Zero 2 W**，通过宇树官方 USB 电机通信板（UniArm L1 同款）控制电机，通过 **LSM6DSV16X IMU** 感知身体运动。
