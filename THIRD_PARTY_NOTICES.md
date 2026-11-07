@@ -35,3 +35,7 @@ MJCF 和网格基于上游 Microduck RL 及 S288 适配模型，模型中的 Ons
 ## 宇树电机总线接线说明与图片
 
 安装篇和电气说明按用户提供的段落摘录了[宇树官方「多电机强化学习部署例程」](https://support.unitree.com/home/zh/J288-S288%20Servo/Servo_learning_routine)第 1.3.1 节的总线连接建议，并在 `assets/images/motors/` 保存该节两张原图。文字以引文形式标注，图片保留原内容，来源为宇树科技；这些文档图片未纳入本项目代码的 Apache-2.0 授权。原图地址及文件哈希见图片目录 README。
+
+## S288 BAM M1–M6 参考模型
+
+`software/bam/` 收录Rhoban BAM的数学模型、S288适配及本次辨识参数。辨识快照与锁定依赖的来源、文件SHA256记录在同目录identification.json；保留原版权头和Apache-2.0 LICENSE。最小registry为本仓打包修改，仅注册s288_hybrid12。

@@ -1,0 +1,1 @@
+{"max_torque": 26.55501714031126, "armature": 0.0008544073232991762, "q_offset": 0.01723738342574402, "command_delay": 0.0028994005835585343, "friction_base": 0.020037701694953617, "load_friction_base": 0.0916781552085359, "friction_viscous": 0.008572104973065516, "ratio": 1.0, "model": "m3", "actuator": "s288_hybrid12"}

@@ -43,6 +43,17 @@ mcroduck整机使用 **15 个 S288**。其中左右腿各 5 个、颈部和头�
 
 训练任务：`Mjlab-Velocity-Flat-S288-MicroDuck`。本版为已测试的 Hybrid + M4、Kp15/Kd0 行走基线，配套 `model_4999` 导出的归一化 ONNX。旧版训练任务和部署策略已从当前代码树移除。
 
+## 代码与模型直达
+
+| 内容 | 入口 |
+| --- | --- |
+| BAM M1–M6 模型与辨识参数 | [BAM 模型](software/bam/) · [六套参数](software/bam/parameters/) · [数学模型源码](software/bam/reference/bam/model.py) |
+| 强化学习训练代码 | [训练代码](software/training/) · [S288 任务配置](software/training/src/mjlab_microduck/tasks/microduck_s288_velocity_env_cfg.py) · [训练教程](docs/TRAIN_GUIDE.md) |
+| Raspberry Pi 部署代码 | [部署代码](software/deployment/) · [键盘控制入口](software/deployment/teleop/scripts/deploy_microduck_s288_velocity.py) · [部署教程](docs/07-deployment.md) |
+| 预训练 ONNX | [S288 行走策略](software/deployment/teleop/scripts/models/microduck_s288_velocity.onnx) · [来源和哈希](policies/manifest.yaml) |
+
+当前行走训练使用 M4；其余 BAM 模型供对比参考。
+
 ## 获取代码
 
 在电脑终端执行。这里显式指定本地文件夹名，与教程后面的路径保持一致：
@@ -81,6 +92,7 @@ cd microduck-s288-open-source
 ## 代码和文件放在哪里？
 
 ```text
+software/bam/            BAM M1–M6 模型、辨识参数与源码
 software/training/       仿真模型、执行器和强化学习训练代码
 software/deployment/     树莓派运行程序、标定工具和配套 ONNX
 cad/                    结构源文件下载说明（文件通过 Release 提供）

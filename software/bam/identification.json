@@ -1,0 +1,54 @@
+{
+  "gear_ratio": 288.35,
+  "supply_setpoint_v": 11.5,
+  "frequency_hz": 100,
+  "duration_s": 6.0,
+  "gains_raw": [
+    10,
+    15,
+    20,
+    25,
+    30,
+    40
+  ],
+  "kd_raw": 0,
+  "trajectories": [
+    "sin_time_square",
+    "lift_and_drop",
+    "up_and_down",
+    "sin_sin"
+  ],
+  "repeats": 2,
+  "split": "repeat1=train; repeat2=independent validation",
+  "position_source": "rotor",
+  "position_target_source": "rotor",
+  "actuator": "s288_hybrid12",
+  "optimizer": "original bam.fit CMA-ES bipop",
+  "optimization_trials": 100000,
+  "optimizer_seed": 20261105,
+  "processing_dt": 0.01,
+  "original_bam_commit": "e9a619d56da5236206f4de6ceec2c1ee1b497b5c",
+  "source_snapshot_sha256": {
+    "reference/bam/__init__.py": "def3c0cf098a3aa9003a8c746efc7ad0305525df42ba6f380589f64ae415ac09",
+    "reference/bam/actuator.py": "6927d7b2341cbaca0e5d872fae4ddce6200056885310d9ee5acaba1f34e09c13",
+    "reference/bam/actuators.py": "89c944e4d755b9f07799c6f481ef9cf71055a2f68da8d78ccade0519039093ca",
+    "reference/bam/message.py": "91149c92e0c229de7dc96fc5f6c8b7135934c1e16ea01cc582685db5a83cfd5c",
+    "reference/bam/model.py": "13fd52f61df34ea5134138f4fca5bb355850064d51873c02f84e22df9910606a",
+    "reference/bam/parameter.py": "6bd9f2c37d4ed82131925bbb1e885948a4dcdfc71542ec35362bc35ccd55bf7f",
+    "reference/bam/simulate.py": "1d7574886692e6b01b206b53700c906db1519973e57060e426740ebd411f727d",
+    "reference/bam/testbench.py": "bd1c211ab4c9e428112d6a0e96664d5a122c90a78f8c00930c0f672a2114928f",
+    "reference/bam/unitree/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reference/bam/unitree/actuator.py": "21e199ceecca80c37ffdac4825a39c0e9eb32d9e399bb84d1697db54380d1ad5",
+    "reference/bam/unitree/identification12/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reference/bam/unitree/identification12/model.py": "b843af3fff88ba63f0fba8a6d4d0fed0d2f865e2560b12cd382dd589fe11bcaa"
+  },
+  "parameter_sha256": {
+    "m1": "db79a359fe8c72c21964ccc15622e4f4b90ef381ab5bd69e0859eb727794f66f",
+    "m2": "f1fdd3cc53772386636111661ab23cd8b0597be69547ef5b1fe6a8b5d7f503ea",
+    "m3": "1bca12f7093e9afda9a2b81a46aeee4c49082c7c26840d6aa4b00a883ed87f47",
+    "m4": "2b149b92cded7e0bde1b5b277f27729637283aa957b59ef3ad9a738bd4c59895",
+    "m5": "445f845737abb3f56b486942603f2c483b0cdbfdd942958ec516ca3d9ba45306",
+    "m6": "625c0e8c76c7b15a8753755ebe73f98b950a86bb9d6ab39a7ec92a8fccc9af8e"
+  },
+  "helper_source": "actuator.py, parameter.py, message.py and top-level __init__.py: locked Rhoban BAM 62bd8ce12154340be97e06f7f41a0ca8f116d967; actuators.py: minimal packaging registry; other math/control files: identification snapshot"
+}

@@ -470,6 +470,116 @@
       "path": "software/tools/inspect_onnx.py",
       "sha256": "325b3f2d7f51cf7a3d027c24eb1624d387075f708d5631d0a1040874b39d99d9",
       "bytes": 1544
+    },
+    {
+      "path": "software/bam/LICENSE",
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+      "bytes": 11357
+    },
+    {
+      "path": "software/bam/README.md",
+      "sha256": "0b1e3d7769f966ed095ea1342817aba224489b87d7c885e6f36475e514a0f790",
+      "bytes": 3417
+    },
+    {
+      "path": "software/bam/identification.json",
+      "sha256": "ecb3dd223d7d056e3989a98090fd50c3533d46f39ad93acf6b7a8cb897f1ac13",
+      "bytes": 2708
+    },
+    {
+      "path": "software/bam/model_comparison.csv",
+      "sha256": "b507baed95e4ad40978cf39f22bc84f1868a5fc8f307b3d96742360a1bfbcf38",
+      "bytes": 1261
+    },
+    {
+      "path": "software/bam/parameters/m1.json",
+      "sha256": "db79a359fe8c72c21964ccc15622e4f4b90ef381ab5bd69e0859eb727794f66f",
+      "bytes": 281
+    },
+    {
+      "path": "software/bam/parameters/m2.json",
+      "sha256": "f1fdd3cc53772386636111661ab23cd8b0597be69547ef5b1fe6a8b5d7f503ea",
+      "bytes": 392
+    },
+    {
+      "path": "software/bam/parameters/m3.json",
+      "sha256": "1bca12f7093e9afda9a2b81a46aeee4c49082c7c26840d6aa4b00a883ed87f47",
+      "bytes": 322
+    },
+    {
+      "path": "software/bam/parameters/m4.json",
+      "sha256": "2b149b92cded7e0bde1b5b277f27729637283aa957b59ef3ad9a738bd4c59895",
+      "bytes": 484
+    },
+    {
+      "path": "software/bam/parameters/m5.json",
+      "sha256": "445f845737abb3f56b486942603f2c483b0cdbfdd942958ec516ca3d9ba45306",
+      "bytes": 591
+    },
+    {
+      "path": "software/bam/parameters/m6.json",
+      "sha256": "625c0e8c76c7b15a8753755ebe73f98b950a86bb9d6ab39a7ec92a8fccc9af8e",
+      "bytes": 694
+    },
+    {
+      "path": "software/bam/reference/bam/__init__.py",
+      "sha256": "def3c0cf098a3aa9003a8c746efc7ad0305525df42ba6f380589f64ae415ac09",
+      "bytes": 281
+    },
+    {
+      "path": "software/bam/reference/bam/actuator.py",
+      "sha256": "6927d7b2341cbaca0e5d872fae4ddce6200056885310d9ee5acaba1f34e09c13",
+      "bytes": 16049
+    },
+    {
+      "path": "software/bam/reference/bam/actuators.py",
+      "sha256": "89c944e4d755b9f07799c6f481ef9cf71055a2f68da8d78ccade0519039093ca",
+      "bytes": 223
+    },
+    {
+      "path": "software/bam/reference/bam/message.py",
+      "sha256": "91149c92e0c229de7dc96fc5f6c8b7135934c1e16ea01cc582685db5a83cfd5c",
+      "bytes": 1171
+    },
+    {
+      "path": "software/bam/reference/bam/model.py",
+      "sha256": "13fd52f61df34ea5134138f4fca5bb355850064d51873c02f84e22df9910606a",
+      "bytes": 13313
+    },
+    {
+      "path": "software/bam/reference/bam/parameter.py",
+      "sha256": "6bd9f2c37d4ed82131925bbb1e885948a4dcdfc71542ec35362bc35ccd55bf7f",
+      "bytes": 994
+    },
+    {
+      "path": "software/bam/reference/bam/simulate.py",
+      "sha256": "1d7574886692e6b01b206b53700c906db1519973e57060e426740ebd411f727d",
+      "bytes": 7326
+    },
+    {
+      "path": "software/bam/reference/bam/testbench.py",
+      "sha256": "bd1c211ab4c9e428112d6a0e96664d5a122c90a78f8c00930c0f672a2114928f",
+      "bytes": 2402
+    },
+    {
+      "path": "software/bam/reference/bam/unitree/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/bam/reference/bam/unitree/actuator.py",
+      "sha256": "21e199ceecca80c37ffdac4825a39c0e9eb32d9e399bb84d1697db54380d1ad5",
+      "bytes": 5397
+    },
+    {
+      "path": "software/bam/reference/bam/unitree/identification12/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/bam/reference/bam/unitree/identification12/model.py",
+      "sha256": "b843af3fff88ba63f0fba8a6d4d0fed0d2f865e2560b12cd382dd589fe11bcaa",
+      "bytes": 619
     }
   ]
 }
