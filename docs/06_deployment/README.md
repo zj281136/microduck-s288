@@ -2,7 +2,7 @@
 
 | 路线 | 输入 | 需要GPU | 使用入口 | 验证前提 |
 | --- | --- | --- | --- | --- |
-| 预训练快速部署 | 仓库ONNX+manifest、本机标定 | 否 | deploy.py check → probe/calibrate → stand | 型号/接线/零位/IMU/支撑逐项核对 |
+| 预训练快速部署 | 仓库ONNX+manifest、本机标定 | 否 | deploy.py check → probe/calibrate → keyboard | 型号/接线/零位/IMU/支撑逐项核对 |
 | 自训练模型 | 匹配task PT → 官方导出ONNX+更新manifest | 训练阶段需要 | inspect/数值/闭环验证 → 相同部署入口 | 导出新入口和ONNX闭环流程仍有待验证项 |
 | 诊断 | 串口、选定ID、正确支撑 | 否 | probe/现有交互方向测试 | probe会发送零增益命令；方向测试会运动 |
 

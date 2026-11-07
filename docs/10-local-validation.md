@@ -1,58 +1,49 @@
-# 兼容性与验证记录
+# 本版验证记录
 
-参考配置：原鸭头 S288 V0 BacklashDR rotor-only 61D。记录日期：2026-10-15。
+日期：2026-11-07。任务：`Mjlab-Velocity-Flat-S288-MicroDuck`；策略来源：成功行走训练的 `model_4999.pt`。
 
-## 1. 已完成的检查
-
-| 检查项 | 结果 |
+| 检查 | 结果 |
 | --- | --- |
-| MicroDuck task 注册 | 本包仅注册一个公开 task |
-| 环境配置 | 与对应参考 task 递归比较一致 |
-| 编译模型 | 14 actuator、14 active hinge、14 passive hinge、1 free root |
-| 模型质量 | 733.3 g |
-| 关键物理数组 | body 质量/位姿/CoM/惯量、joint、damping、armature、transmission 一致 |
-| 依赖锁一致性 | `uv lock --check --offline` 通过 |
-| ONNX loader | 61→14、contract、HOME、action scale 和增益校验通过 |
-| ONNX 计算图 | 与配套原始导出图和权重一致 |
-| 统一部署入口 | `deploy.py check` 加载与哈希核对通过 |
-| 静态文件检查 | Python/shell 语法、相对链接、单 task 注册和模型哈希通过 |
+| 独立环境安装 | 新建 `.venv`，`uv sync --locked` 成功 |
+| 配置比较 | 训练和play配置与原任务递归比较一致；仅修改名称、文件路径和默认日志后端 |
+| PPO与日志 | seed42、全部算法参数不变；TensorBoard与成功运行保存的agent.yaml一致 |
+| 机器人编译 | 14 actuator，14主动关节和14被动关节，质量741.5g |
+| 物理数组 | 质量、惯量、CoM、关节、阻尼、armature、transmission、碰撞数组逐项hash一致 |
+| CPU回归 | 冻结配置和模型数组、M4载荷相关Stribeck摩擦预算测试通过 |
+| GPU短训练 | 64环境、5轮完成；NaN termination=0，所有奖励项正常计算 |
+| 正式checkpoint导出 | 使用本包runner/export.py加载model_4999成功，归一化包含在ONNX中 |
+| 图与权重 | 原Pi模型、公开ONNX和新包重新导出ONNX的graph/权重序列化相同 |
+| ONNX对比 | 128组输入，公开模型/原Pi模型/新导出模型输出差值均为0 |
+| PyTorch/ONNX | 同128组输入，最大误差1.0132789611816406e-6，阈值1e-5 |
+| 离线部署 | 61→14、metadata、HOME、gains、模型hash、50Hz设置、保护阈值、键盘及输出行为通过 |
 
-上述配置比较在现有 Python 3.12 依赖环境中进行，使用独立导入路径确认加载本包源码。锁文件检查验证项目声明与锁一致，不等于完成干净机器依赖安装。
+公开ONNX SHA256：`d0a8cad7b8a77ab8e20f35a680f59e2d50ac336a9f248f7d1b54013330e92eee`。
 
-## 2. 模型标识
+模型权重与成功版本相同，仅规范化 contract/dynamics 名称及去掉run_path中的个人路径，因此整个ONNX文件的SHA256发生变化。checkpoint SHA256和文件清单记录于根目录PROVENANCE.json和SOURCE_MANIFEST.json。
 
-```text
-microduck_s288_v0_backlash_dr_rotor_pd_m1.onnx
-SHA256: b04484f1432d6199bc7c9e898fc52229462cdd55d32bdf4c39e11da6ae482f09
-```
+CPU数值对比不等于闭环实机测试。原始策略已由作者在其机器人上测试并反馈行走效果良好；本次打包过程没有启动电机、修改Pi或在另一台机器上验证。50Hz是目标频率，实际周期仍取决于Pi负载、串口和传感器时序。
 
-模型源于同 task 的 model_9999。公开文件的 run_path 元数据采用相对标识；图与权重未变化。
+编译时可能提示actuator表达式也匹配site；实际14个actuator均为joint transmission。本次保留原配置，没有为隐藏warning而改变模型。
 
-## 3. 检查范围
+## 重复检查
 
-静态模型编译、配置比较和模型加载不包含闭环 rollout。当前记录没有对精简包重新训练，也没有完成全新机器上的安装和真机复现；这些工作列于[资料完善计划](09-author-checklist.md)。独立导出脚本还需要结合后续公开 checkpoint 验证完整导出流程。
-
-部署检查不打开电机或 IMU，因此不能验证电气连接、实机标定、实际频率、温升和行走稳定性。
-
-继承构造链可能提示 actuator 表达式也匹配到 site；编译结果确认 14 个 actuator 均为 joint transmission。检查时保留该 warning，不通过变更配方来隐藏提示。
-
-## 4. 可重复执行的静态检查
-
-在仓库根目录执行：
+仓库根目录：
 
 ```bash
 python tools/check_release.py
 ```
 
-该工具检查源码语法、相对文档链接、task 注册数量、模型 manifest 哈希，以及意外收录的真实标定/PT。它不依赖 MuJoCo，也不执行任何真机动作。
-
-Pi 运行环境还可执行：
+训练目录：
 
 ```bash
-cd software/deployment
-.venv/bin/python deploy.py check
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --with pytest pytest tests/ -q
 ```
 
-## 2026-10-16 资料整理范围
+部署目录（使用已安装运行依赖的Python）：
 
-以下内容属于历史资料整理的检查记录，不应当作当前机器已通过硬件验收。文档维护不重新执行模型加载、仿真、训练或真机测试；现有程序的适用范围见操作证据表。
+```bash
+.venv/bin/python deploy.py check
+.venv/bin/python tests/check_velocity_policy.py
+```
+
+依赖安装、短训练与导出命令见[训练教程](TRAIN_GUIDE.md)。以上离线检查不打开串口或IMU；新机器的接线、标定、供电及步态需要单独验收。

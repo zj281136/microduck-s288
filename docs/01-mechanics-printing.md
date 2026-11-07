@@ -11,7 +11,7 @@
 | 可编辑 CAD | 连接面、孔位、公差和结构修改 | 需导出打印文件 |
 | 已验证打印 STL | 实物装配使用的几何 | 按对应版本和打印说明使用 |
 
-训练资源位于 `software/training/src/mjlab_microduck/robot/microduck/`。`robot_walk_s288_v1.xml` 是 V0 构造链使用的基础模型，Python 配置会继续应用电池、Pi 质量及被动关节设置；仅在查看器中打开基础 XML，不一定等于最终训练模型。
+训练资源位于 `software/training/src/mjlab_microduck/robot/microduck/`。`robot_walk_s288_duck.xml` 是 V0 构造链使用的基础模型，Python 配置会继续应用电池、Pi 质量及被动关节设置；仅在查看器中打开基础 XML，不一定等于最终训练模型。
 
 ## 2. 单位与坐标
 

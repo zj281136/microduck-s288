@@ -1,4 +1,4 @@
-# Curated S288 rotor-only dependency subset; see THIRD_PARTY_NOTICES.md.
+# S288 velocity dependency subset; see THIRD_PARTY_NOTICES.md.
 """Bilateral (left-right) symmetry augmentation for the microduck 61-D envs.
 
 Migrated 2026-08-13 from the old 51-D layout to the current 61-D family

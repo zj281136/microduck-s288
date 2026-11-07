@@ -16,15 +16,20 @@ def ready_metrics(q, dq, target, tilt, gyro):
 
 
 def transition(api, robot, imu, q_start, q_stand, duration, imu_max_age,
-               max_tilt_deg, max_angular_speed, *, log_path, require_ready=True):
+               max_tilt_deg, max_angular_speed, *, log_path, require_ready=True,
+               hold_seconds=0.0, completion_message=None):
     """12 s default ramp; >=2 s hold; require 0.5 s ready, timeout at 5 s hold."""
+    if hold_seconds < 0 or (require_ready and hold_seconds != 0):
+        raise ValueError("hold_seconds must be nonnegative and requires require_ready=False")
     target = np.asarray(q_stand, dtype=np.float32)
     start = np.asarray(q_start, dtype=np.float32)
     travel = np.asarray([api.wrap_pi(float(t-s)) for t,s in zip(target,start)])
     path = Path(log_path).with_name(Path(log_path).stem + '_transition.csv')
     fields = ['elapsed_s','phase','sample_time','joint_order','target','rotor','outpos',
               'rotor_error','outpos_error','rotor_speed','torque','tilt_deg','gyro',
-              'raw_pos','raw_speed','raw_outpos','feedback_rx_s','ready','ready_for_s']
+              'raw_pos','raw_speed','raw_outpos','feedback_rx_s','ready','ready_for_s',
+              'projected_gravity','accel_m_s2','imu_timestamp_s','loop_start_s',
+              'command_tx_s','feedback_rx_monotonic_s','voltage_v','temperature_c']
     began = next_tick = time.perf_counter()
     ready_since = None
     print(f'Transition log: {path}',flush=True)
@@ -55,14 +60,24 @@ def transition(api, robot, imu, q_start, q_stand, duration, imu_max_age,
             for field in ('raw_pos','raw_speed','raw_outpos'):
                 row[field]=[getattr(states[n],field) for n in api.POLICY_JOINT_ORDER]
             row['feedback_rx_s']=[states[n].feedback_rx_s for n in api.POLICY_JOINT_ORDER]
+            row['feedback_rx_monotonic_s']=row['feedback_rx_s']
+            row['projected_gravity']=np.asarray(sample.projected_gravity).tolist()
+            row['accel_m_s2']=np.asarray(sample.accel_m_s2).tolist()
+            row['imu_timestamp_s']=sample.timestamp
+            row['loop_start_s']=now
+            timing=robot.last_command_timing
+            tx={item.motor_id:item.command_tx_s for item in timing.transactions} if timing else {}
+            row['command_tx_s']=[tx.get(states[n].motor_id) for n in api.POLICY_JOINT_ORDER]
+            row['voltage_v']=[states[n].voltage_v for n in api.POLICY_JOINT_ORDER]
+            row['temperature_c']=[states[n].temperature_c for n in api.POLICY_JOINT_ORDER]
             writer.writerow({k:json.dumps(v) if isinstance(v,list) else v for k,v in row.items()})
-            if not require_ready and elapsed >= duration:
-                print('12 s STAND transition complete; entering policy without readiness gate.',flush=True)
+            if not require_ready and elapsed >= duration + hold_seconds:
+                print(completion_message or 'STAND transition complete; entering policy without readiness gate.',flush=True)
                 return states
-            if phase=='hold' and elapsed-duration >=2.0 and stable>=0.5:
+            if require_ready and phase=='hold' and elapsed-duration >=2.0 and stable>=0.5:
                 print(f'STAND verified: max rotor error={math.degrees(err):.2f} deg, tilt={tilt:.2f} deg; policy handover.',flush=True)
                 return states
-            if elapsed >= duration+5.0:
+            if require_ready and elapsed >= duration+5.0:
                 raise api.DeploymentAbort(f'STAND not ready; policy NOT started: {api.POLICY_JOINT_ORDER[index]} rotor error={math.degrees(err):.2f} deg, max speed={max(abs(dq)):.3f} rad/s, tilt={tilt:.2f} deg, gyro={np.linalg.norm(sample.angular_velocity_rad_s):.3f} rad/s. See {path}')
             next_tick+=1/api.POLICY_RATE_HZ
             time.sleep(max(0.,next_tick-time.perf_counter()))

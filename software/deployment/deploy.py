@@ -11,8 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parent
 SCRIPTS = ROOT / "teleop" / "scripts"
 ENTRIES = {
-    "stand": "deploy_microduck_s288_v0_backlash_dr_real.py",
-    "keyboard": "deploy_microduck_s288_v0_backlash_dr_keyboard_real.py",
+    "keyboard": "deploy_microduck_s288_velocity.py",
     "calibrate": "calibrate_microduck_s288_rotor.py",
     "probe": "probe_s288_bus.py",
 }
@@ -20,7 +19,7 @@ ENTRIES = {
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, epilog=(
-        "stand/keyboard/calibrate/probe forward all remaining options to the "
+        "keyboard/calibrate/probe forward all remaining options to the "
         "original S288 entry. check only loads the local policy."
     ))
     parser.add_argument("mode", nargs="?", default="check",
@@ -30,9 +29,9 @@ def main():
     if args.mode == "check":
         if remaining:
             parser.error("check takes no hardware arguments")
-        entry = importlib.import_module("deploy_microduck_s288_v0_backlash_dr_real")
+        entry = importlib.import_module("deploy_microduck_s288_velocity")
         model = entry.deployment.DEFAULT_POLICY
-        session, _, _, _, _ = entry.load_backlash_dr_policy(model)
+        session, _, _, _, _ = entry.load_policy(model)
         manifest = json.loads(model.with_suffix(".manifest.json").read_text())
         digest = hashlib.sha256(model.read_bytes()).hexdigest()
         if digest != manifest["onnx_sha256"]:

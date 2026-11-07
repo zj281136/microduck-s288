@@ -1,11 +1,3 @@
 # 训练权重
 
-PT 用于 play 或继续训练；ONNX 用于部署。配套 ONNX 已收录在部署 models 目录。
-
-## 资源状态
-
-待完善。
-
-## 资源记录
-
-每份资源应附带：公开 checkpoint 下载位置、task、参数配置、依赖版本和 SHA256。
+本次成功版本为 model_4999；仓库包含对应部署ONNX和完整训练配方，PT没有提交到Git。PT用于resume/play，ONNX用于Pi推理。参见[策略说明](../policies/README.md)。

@@ -1,62 +1,475 @@
-[
-  {
-    "source": "src/mjlab_microduck/tasks/mdp.py",
-    "release": "software/training/src/mjlab_microduck/tasks/mdp.py",
-    "sha256": "ef843d47a38f8158bf7e9acb81047aa42737f12b769ea77ddd37c952c92104b4"
-  },
-  {
-    "source": "src/mjlab_microduck/tasks/s288_v0_contract.py",
-    "release": "software/training/src/mjlab_microduck/tasks/s288_v0_contract.py",
-    "sha256": "0a7d7e45dcb92393b7598a614499c21f3011154c68e0e85306209e6dd79f7cc0"
-  },
-  {
-    "source": "src/mjlab_microduck/tasks/__init__.py",
-    "release": "software/training/src/mjlab_microduck/tasks/__init__.py",
-    "sha256": "5dc6cc2238cd1bbd562473a6b727cff914f4577a371789c2240805f8a1e44530"
-  },
-  {
-    "source": "src/mjlab_microduck/tasks/microduck_s288_v0_backlash_dr_env_cfg.py",
-    "release": "software/training/src/mjlab_microduck/tasks/microduck_s288_v0_backlash_dr_env_cfg.py",
-    "sha256": "7cfea1111f486e8c9c7aabbff6dba6e2732227bc990a3b22bd8531b70afd12e3"
-  },
-  {
-    "source": "src/mjlab_microduck/tasks/microduck_velocity_env_cfg.py",
-    "release": "software/training/src/mjlab_microduck/tasks/microduck_velocity_env_cfg.py",
-    "sha256": "8c933d1e1ca300be9022c2860830390c7600b4456abae083e229eb88e7a02263"
-  },
-  {
-    "source": "src/mjlab_microduck/tasks/symmetry.py",
-    "release": "software/training/src/mjlab_microduck/tasks/symmetry.py",
-    "sha256": "efbde220a52af9f4d6d1737a86d8b273340bd1a1f90dfeba1bebfe6703faf3d1"
-  },
-  {
-    "source": "src/mjlab_microduck/robot/microduck_constants.py",
-    "release": "software/training/src/mjlab_microduck/robot/microduck_constants.py",
-    "sha256": "b75b6234da528b746991ecbc01382a42c4567b71d0837dfe943698333d0a9d9c"
-  },
-  {
-    "source": "src/mjlab_microduck/actuator/__init__.py",
-    "release": "software/training/src/mjlab_microduck/actuator/__init__.py",
-    "sha256": "002b3fcc9df9135550b49d859c94c5dcc1ec2d40c9bfa0f71afcf4ebc2e143bc"
-  },
-  {
-    "source": "src/mjlab_microduck/actuator/s288_bam_m1.py",
-    "release": "software/training/src/mjlab_microduck/actuator/s288_bam_m1.py",
-    "sha256": "7459c6ca8b3ed50f617936fa1700994e586b8257f63580e47657560e3910aa3b"
-  },
-  {
-    "source": "src/mjlab_microduck/actuator/friction_dr_bam.py",
-    "release": "software/training/src/mjlab_microduck/actuator/friction_dr_bam.py",
-    "sha256": "3329b9b0a10bbe062e0c2e33637d4853bab2f5858a2df288672cf42fc315e81c"
-  },
-  {
-    "source": "src/mjlab_microduck/actuator/j288_pd.py",
-    "release": "software/training/src/mjlab_microduck/actuator/j288_pd.py",
-    "sha256": "6daef023c7a73824c29abfedd52b2dac218d3de62015bc3c8a74de2ec6313e27"
-  },
-  {
-    "source": "src/mjlab_microduck/tasks/backlash.py",
-    "release": "software/training/src/mjlab_microduck/tasks/backlash.py",
-    "sha256": "f5987182f26ed07c9b2a6a0545cc667e2b4b8e56115950e3daec6ab1dcf750df"
-  }
-]
+{
+  "description": "Published file identities; training and deployment derived from validated working trees. See PROVENANCE.json and THIRD_PARTY_NOTICES.md.",
+  "files": [
+    {
+      "path": "software/training/LICENSE",
+      "sha256": "2d3fd9ffffa70a4307498ec630b14a6b4731e010f8ddda92686eaf65733c2dfe",
+      "bytes": 11351
+    },
+    {
+      "path": "software/training/README.md",
+      "sha256": "68f1ef6f891427795245bfaa248ce74e7b34784b7e4329697daad11eddcaa329",
+      "bytes": 811
+    },
+    {
+      "path": "software/training/pyproject.toml",
+      "sha256": "1e1781ad93c83bc42a770e1593254fe90e32aa56387e6722d120483abf320c6a",
+      "bytes": 4444
+    },
+    {
+      "path": "software/training/scripts/export.py",
+      "sha256": "1091250e30eda617799276c46db7ef1a7ab9f28b385b42afff232461a979f8ee",
+      "bytes": 2010
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/actuator/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/actuator/friction_dr_bam.py",
+      "sha256": "50535d40929449b3d525db5cdb9acdf030b9ffb78b31a8d3d5ee21a92a3dcb27",
+      "bytes": 2182
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/actuator/params/s288_hybrid_m4.json",
+      "sha256": "2b149b92cded7e0bde1b5b277f27729637283aa957b59ef3ad9a738bd4c59895",
+      "bytes": 484
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/actuator/s288_bam_m1.py",
+      "sha256": "e2aa78fab037e8f0fa1f8e948aa851e260f38a3f17dc940d76120920c5a03642",
+      "bytes": 14461
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/actuator/s288_bam_m4.py",
+      "sha256": "ac9f0f001110072ca303452bf3c6e7295c3757cb805f80c7e3e428374f4c393f",
+      "bytes": 4954
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/ankle_left.stl",
+      "sha256": "98f14ba6e6cd138740aa822a615aaa0db34527d499c40b2379aacd13427a1379",
+      "bytes": 248984
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/ankle_right.stl",
+      "sha256": "836032fdeaa4b1f47f75cb24fa4ad9ebdb09acec158a0d787b3890c6dc4d4c6e",
+      "bytes": 248884
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/banana_pcb_locker.stl",
+      "sha256": "a176364f824248b5156b37f2fd5c6b8bdfb24cd08be7ed6b3faa10b4db14a9cb",
+      "bytes": 69484
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/bearing_roll.stl",
+      "sha256": "2b30cbdb110c5cca7092a9b2658c9e899e294bf2df71635828858e1d1a20abfe",
+      "bytes": 121084
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/bottom_head_shell.stl",
+      "sha256": "3ce9532854a712c93e00e0fd2bbc2ce6b1c45f9418fd29d6e82f6ad8af8fc1af",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/elec_rpi_robot_hat_pcb.stl",
+      "sha256": "45b904bcb378161d274d313cd067d3967305db0bf22c0955530145e18cdd2cd8",
+      "bytes": 942884
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/face_part.stl",
+      "sha256": "30eaa56fc38129ba16e2b4e247ac419b0ae9e5b0fe9e748697f4838d338b952e",
+      "bytes": 570684
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/foot_left.stl",
+      "sha256": "5de2622a7b894e0fc9988dc6cff6579ee1dc818ffaddd0319f49cf5d5bd05587",
+      "bytes": 996184
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/foot_right.stl",
+      "sha256": "8ffa894b29578edc78f5e982a7d89a8f5e4fa1dc27232b88c22a8a0a74cfbaa7",
+      "bytes": 995784
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/hip_l.stl",
+      "sha256": "02bc777ce76a31b3d5c415188f8268b989f4eca57bc440a2900825ac459dec38",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/jaw.stl",
+      "sha256": "65c300349113d3c6cd4a2cc587f76f7228115565a854492e42358ba8df71796a",
+      "bytes": 495984
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/jaw_soft.stl",
+      "sha256": "61a426890f748713d45a9c0844149bcb0340d326f75295dcf7de2a4d768cbc85",
+      "bytes": 336384
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/left_shell.stl",
+      "sha256": "efc16f55a4c32d21d74bf834faba27346788f154e29b40850cbcc69fda2f2396",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/leg.stl",
+      "sha256": "b57d55ec2504dfb90b07bfc781dbf9b4bb6560becaf1dddbadd6a3914fdc423f",
+      "bytes": 738884
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/lens.stl",
+      "sha256": "1549b2dad784d1a4c505c1ca62bffce6ca4e9b22c9273b37d6cda1c8bf2ca127",
+      "bytes": 93684
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/m12_lens_holder.stl",
+      "sha256": "7a9989bbe776ddd7a268013e63cdf0efc2fdae245ad2754a6b18d6bfbe21c2ed",
+      "bytes": 549684
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/motor_support.stl",
+      "sha256": "5a741ee0dc71b349b8d6def4bffb826c4b9304c47cf0f00ffd1a3140b9205220",
+      "bytes": 180884
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/neck.stl",
+      "sha256": "ee5d4cbc51f64c43cd9c15f82709be93b5bd3f080013726d1d39c329c85050b9",
+      "bytes": 73484
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/neck_pitch.stl",
+      "sha256": "b9aed695e03da3819d244ecc66f1ad2d3c5c435f759403bb9e0f3b9ca2876453",
+      "bytes": 356084
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/noenoeil.stl",
+      "sha256": "f5492d8291da053bb4cb3f6680f90507648c4cfe1ef59f92b7d8f53e980d279b",
+      "bytes": 49284
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/np_f970.stl",
+      "sha256": "979ca81251d4ec5862b6c987b46095aa07d0534ca1ec15f3cf438bbf7189deda",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/pcb__raspberry_pi_zero_2_w.stl",
+      "sha256": "0608b3cc7d15e479ae3a275c03096df44322ed06a8dbfc59fe790c46b3690753",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/power_support.stl",
+      "sha256": "cb43ba9351f51559f49ffc89679478288cfe6e9682b31898397406165b520cbe",
+      "bytes": 641684
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/right_shell.stl",
+      "sha256": "484779f2bbe856f212d96a152550bb6834fd3c69603da315b6f70d1a3766d120",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/seeed_bearing__configuration__22x16x4.stl",
+      "sha256": "154412afeab1875acfc8bbd437f193f02c86cdd6a556395db10bb7126c545c6e",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/seeed_bearing__configuration_default.stl",
+      "sha256": "4d0d4c174a167e5f783b52b212a14a5bbd8a3180988c744c299c330a6b3de448",
+      "bytes": 1048584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/soft_mouth_top.stl",
+      "sha256": "16f662c82bd3e24f0e64ee22b6b549b9a2a76f6de7b7477b9f89f5861f3e91a1",
+      "bytes": 393584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/sole_left.stl",
+      "sha256": "db35f3b231c075fe1f9cb5449e7a698fb8ea97362daf8432be3e9700c2067574",
+      "bytes": 789484
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/sole_right.stl",
+      "sha256": "a4f5c114aae7137d559cacfb71d77c981588850335de5a09a14f95a4192a218f",
+      "bytes": 794484
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/speaker.stl",
+      "sha256": "694064a99dbecd48aea6122232ff1051b085e59ccbd4c53d8c32640105b4e826",
+      "bytes": 684
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/top_head_shell.stl",
+      "sha256": "bc64288c0d54e13ec907256c2b99535937d370af1410de498905ec3cf8d7c3df",
+      "bytes": 806084
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/trunk_base.stl",
+      "sha256": "fabfecefb73fbdc027e0fc8fc482a3857b86682a8dac0ca2ed88ae3011c01659",
+      "bytes": 184984
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/upper_leg_left.stl",
+      "sha256": "b84e46d681cb971029e421c252de85e2f31e8858abee610dc26cd18037ef0224",
+      "bytes": 612584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/upper_leg_right.stl",
+      "sha256": "d6ed49dc77a539c65b9db1251f16b1e037f5ccf4334607e487dd624f9e12f59e",
+      "bytes": 612584
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/upper_leg_rigidity_plate.stl",
+      "sha256": "41a4f826b5badfb75a1c0a6d26527c49761de88597d67c25ad731df2cdab7995",
+      "bytes": 180084
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/xl330.stl",
+      "sha256": "c9f6bf7dd9d8b307a4174b40ff12517b3ea470e5535319a5b7dcce4ba52cdfe1",
+      "bytes": 206384
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/yaw2roll.stl",
+      "sha256": "56ce1110e43c2279c6580f79a2a8c9e3f91b3bf5cdf8cf00b1caa3cab127a6a7",
+      "bytes": 620284
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/assets/yaw_roll_motion.stl",
+      "sha256": "41149f07f2fb4f2c62b589b3e43c17bedbc57e17d2de5d4e22c4f4e4d3e73dc7",
+      "bytes": 290784
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck/robot_walk_s288_duck.xml",
+      "sha256": "367fc9eaadcccc62565728d11a5f4c78d39fcc4075ad1a30244f663110b5d498",
+      "bytes": 30137
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/robot/microduck_constants.py",
+      "sha256": "955457c8c764dd1b3e09f7682ce6f1d2adc9ca7899d284ced14654687bfa2e80",
+      "bytes": 2203
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/tasks/__init__.py",
+      "sha256": "fa703744b289d3767888f64fc06495994e1acd31422e9f8fb1c61151c4da14e2",
+      "bytes": 1352
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/tasks/mdp.py",
+      "sha256": "f766f5dcc7d00daf3a8b53595dec48129d65c71faf338a460adcb4dd6e38a45d",
+      "bytes": 45298
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/tasks/microduck_s288_velocity_env_cfg.py",
+      "sha256": "36191d988a6277e706b7ec839233d2f868a50cd6b123984990db5dd6b8da2e4a",
+      "bytes": 2433
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/tasks/microduck_velocity_env_cfg.py",
+      "sha256": "b60a0054e5e2f6e92b5fd629e3abeb8843f70f00839e5006ab572936eb019ac8",
+      "bytes": 43010
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/tasks/policy_contract.py",
+      "sha256": "e006e88e42078ecadd8ac954a377e6e05e121122c3dc3376dec8e23045019477",
+      "bytes": 1350
+    },
+    {
+      "path": "software/training/src/mjlab_microduck/tasks/symmetry.py",
+      "sha256": "3cca076913042fa57a05c81395c88a79aed6a52e814be9b0b40282b8be93e817",
+      "bytes": 2798
+    },
+    {
+      "path": "software/training/tests/fixtures/velocity_baseline.json",
+      "sha256": "34ac76f582cb4f78c6c3cf5cdbc3374657c2dedc5b00b843806df2db5e554d02",
+      "bytes": 133410
+    },
+    {
+      "path": "software/training/tests/test_velocity_baseline.py",
+      "sha256": "e0abb0ee6cc3a4188911996308a79f4bcef8ec6a71c76fe6ae22b308d4a78670",
+      "bytes": 2638
+    },
+    {
+      "path": "software/training/uv.lock",
+      "sha256": "2eeeb680025baa737e7ccf3a87da3695a9d49b228de0bb60d8af0c022ab5f1aa",
+      "bytes": 241445
+    },
+    {
+      "path": "software/deployment/LICENSE",
+      "sha256": "81c1088ad03e83e35f24c40f3b7fa5d462b7fc4aff0d23d98329c0a127d5cdc4",
+      "bytes": 600
+    },
+    {
+      "path": "software/deployment/README.md",
+      "sha256": "f70e053c148fbbe8e4243475ed12f5f2ee1ca439bf4175b9cad0b0892f88f875",
+      "bytes": 899
+    },
+    {
+      "path": "software/deployment/deploy.py",
+      "sha256": "336be7e0d7b43f6c1fb9456ba891d635b7332b72224466039deff4294bfee6b2",
+      "bytes": 2255
+    },
+    {
+      "path": "software/deployment/setup_pi.sh",
+      "sha256": "d97569feda17a603439796115541a1395106c19a8940aa1989fa2458761ccb67",
+      "bytes": 330
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/constants.py",
+      "sha256": "1bb62f45089b830031aeefefbad2f955f2eccd69864197a9e057f21708a1e68d",
+      "bytes": 4499
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/microduck_288.py",
+      "sha256": "106c23dc6920e5f93b30c7e4f1f383fa6abf5f2b0cc69902d0d04a075bbff0d5",
+      "bytes": 23834
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/microduck_j288.py",
+      "sha256": "3fe220e76896a80a2ba8e3cc18d3d27d101ae462555cf79499e843cc78d2a749",
+      "bytes": 2658
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/microduck_s288.py",
+      "sha256": "a1abd8b610837e548326bbcc65484bb2254f334e93337c78517310ec81f25a5b",
+      "bytes": 4086
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/uniarm_l1_bus.py",
+      "sha256": "c081dd85e09654e314c2f6cd92afcdfcc979e460dd65038cef2037ba8261646d",
+      "bytes": 20401
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/arm/utiles.py",
+      "sha256": "06bd0abc60e1210b06dc1a704688932c8a30a0ae95626f1687a0a033bfd11de9",
+      "bytes": 771
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/imu/__init__.py",
+      "sha256": "215e6854f1b0d6b877a1e225baa8ac7e2e780bbcc053c81188f5ed3b8ce942aa",
+      "bytes": 62
+    },
+    {
+      "path": "software/deployment/teleop/robot_control/imu/lsm6dsv16x.py",
+      "sha256": "cdb83468e8bfb86d6ee285675cbd4ed18c75251e551a49315b369ddd94b8b4a1",
+      "bytes": 9890
+    },
+    {
+      "path": "software/deployment/teleop/scripts/calibrate_microduck_j288.py",
+      "sha256": "5bc68309eb41eee6aa88f37045cd87fb47a8afbc682fdb5ee0621d11e444c20c",
+      "bytes": 19553
+    },
+    {
+      "path": "software/deployment/teleop/scripts/calibrate_microduck_s288_rotor.py",
+      "sha256": "09938370b59f65766a216aa269be258cc5999c9a60e559714a029762b686e33b",
+      "bytes": 1654
+    },
+    {
+      "path": "software/deployment/teleop/scripts/deploy_microduck_j288_onnx.py",
+      "sha256": "d7bfdde2b669a341003610029db4951ab6d48a05d4770c95ce03d4781a802554",
+      "bytes": 21799
+    },
+    {
+      "path": "software/deployment/teleop/scripts/deploy_microduck_j288_real.py",
+      "sha256": "59cceb158b95b43ecf1a2579155edcec9b27ef1e7dec81b205861c29e8ed34f4",
+      "bytes": 66046
+    },
+    {
+      "path": "software/deployment/teleop/scripts/deploy_microduck_s288_velocity.py",
+      "sha256": "5ef72c1a627b28bc90df5d8b92cf58946f36b3585128561cb9441ca1711f5485",
+      "bytes": 8390
+    },
+    {
+      "path": "software/deployment/teleop/scripts/models/README.md",
+      "sha256": "4ab2cbb7171a9e9ca2b19f577e701ba97ba60231362c7e8b2e7d02ac59541b46",
+      "bytes": 204
+    },
+    {
+      "path": "software/deployment/teleop/scripts/models/microduck_s288_velocity.manifest.json",
+      "sha256": "c08d9d358911cd7639aa648fdffe767764a8af3222982c9b33478e07cbfdd402",
+      "bytes": 2468
+    },
+    {
+      "path": "software/deployment/teleop/scripts/models/microduck_s288_velocity.onnx",
+      "sha256": "d0a8cad7b8a77ab8e20f35a680f59e2d50ac336a9f248f7d1b54013330e92eee",
+      "bytes": 794833
+    },
+    {
+      "path": "software/deployment/teleop/scripts/policy_qdot_delay.py",
+      "sha256": "4590dfe9615920c520f85bf519fcac62d6311625f2ea0e088f5516b106883ae1",
+      "bytes": 1003
+    },
+    {
+      "path": "software/deployment/teleop/scripts/probe_s288_bus.py",
+      "sha256": "e347f844273029696a958cba3e6ae45b6eba79a98ada109ac42c6457027300c0",
+      "bytes": 1850
+    },
+    {
+      "path": "software/deployment/teleop/scripts/requirements_pi_deploy.txt",
+      "sha256": "4f83208bcf29fdc3918fb08d5672f45cf74d2a173e6cbd612ff0420f94588a2e",
+      "bytes": 68
+    },
+    {
+      "path": "software/deployment/teleop/scripts/s288_keyboard.py",
+      "sha256": "1f8ab87bb65d48c5eddd37a4d72cdeba3cdcdc06bdfbaba33e8b5198cd4d9bd2",
+      "bytes": 4102
+    },
+    {
+      "path": "software/deployment/teleop/scripts/s288_policy_contract.py",
+      "sha256": "a2bc8445dbcc5372e32e7102f09f5fb057dacbd73c1eb9a214748a49a2ed8d6f",
+      "bytes": 1884
+    },
+    {
+      "path": "software/deployment/teleop/scripts/s288_real_common.py",
+      "sha256": "40433332e84d147759be3e4217a88abd875efbe846fe4e32e35e345c23ffeca6",
+      "bytes": 2346
+    },
+    {
+      "path": "software/deployment/teleop/scripts/s288_runtime.py",
+      "sha256": "17904732ed1a1aed7274ff8dc4bf0ffc5f4ed42ef6bc48e4f1a16c8cdb0be245",
+      "bytes": 1957
+    },
+    {
+      "path": "software/deployment/teleop/scripts/s288_stand_gate.py",
+      "sha256": "c323a5105065f9aed998011dd307902fe4a842ea2db2b04ffe8bcbde32cc0452",
+      "bytes": 5523
+    },
+    {
+      "path": "software/deployment/tests/check_velocity_policy.py",
+      "sha256": "b01fd3810380be06966d9608b4980e91cf6cea596b87af4bacb3c5ea5d5ce16f",
+      "bytes": 3166
+    },
+    {
+      "path": "software/deployment/tests/test_probe_s288_bus.py",
+      "sha256": "1a63f87b6e86ad77bb6327b0a98c0a311422c3abe3d14a8b59c7c407a1a61366",
+      "bytes": 3415
+    },
+    {
+      "path": "software/tools/compare_policy_outputs.py",
+      "sha256": "db2ca6e52bf38697c1ce226e90ce97127cf6382cf72cfaafc13bbd2c4eb4a3f4",
+      "bytes": 2543
+    },
+    {
+      "path": "software/tools/inspect_onnx.py",
+      "sha256": "325b3f2d7f51cf7a3d027c24eb1624d387075f708d5631d0a1040874b39d99d9",
+      "bytes": 1544
+    }
+  ]
+}

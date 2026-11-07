@@ -36,6 +36,7 @@ class MotorState:
     # Unscaled fields from the last CRC-validated 26-byte feedback packet.
     # ``pos`` and ``speed`` are rotor-side; ``OutPos`` is output-side.
     raw_pos: int | None = None
+    raw_torque: int | None = None
     raw_speed: int | None = None
     raw_outpos: int | None = None
     MError: int = 0
@@ -118,13 +119,24 @@ class UnitreeMotorSDK:
 
     def write_control_packet(self, motor_id: int, pos: float = 0.0, kp: float = 1.8e-4,
             kd: float = 4.1e-5, torque: float = 0.0, speed: float = 0.5e-8,
-            status: int = 1, timeout_enable: int = 0):
+            status: int = 1, timeout_enable: int = 0,
+            *, kp_raw: int | None = None, kd_raw: int | None = None):
         """
         pos is output-equivalent radians in the selected encoder coordinate.
         Legacy outpos mode aligns OutPos to rotor on the first position command.
         Rotor mode uses only rotor feedback to select the nearest continuous turn.
         Both modes subsequently unwrap changes from the previous target.
         """
+
+        # Optional authoritative wire gains for identification; historical callers
+        # retain the original float API and encoding behavior.
+        for name, value in (("kp_raw", kp_raw), ("kd_raw", kd_raw)):
+            if value is not None and (type(value) is not int or not 0 <= value <= 32767):
+                raise ValueError(f"{name} must be an integer in [0, 32767]")
+        if kp_raw is not None:
+            kp = kp_raw / K_KP
+        if kd_raw is not None:
+            kd = kd_raw / K_KD
 
         mode_byte = (motor_id & 0x0F) | ((status & 0x07) << 4) | ((timeout_enable & 0x01) << 7)
         st = self.motor_states[motor_id]
@@ -158,8 +170,8 @@ class UnitreeMotorSDK:
         raw_tor = max(-32768, min(32767, int((torque / GEAR_RATIO) * K_TORQUE)))
         raw_spd = max(-32768, min(32767, int((speed * GEAR_RATIO) * K_SPEED)))
         raw_pos = int((pos_cont * GEAR_RATIO) * K_POS)
-        raw_kp = max(0, min(32767, int(kp * K_KP)))
-        raw_kd = max(0, min(32767, int(kd * K_KD)))
+        raw_kp = kp_raw if kp_raw is not None else max(0, min(32767, int(kp * K_KP)))
+        raw_kd = kd_raw if kd_raw is not None else max(0, min(32767, int(kd * K_KD)))
 
         payload = struct.pack("<BBhhihh", mode_byte, 0, raw_tor, raw_spd, raw_pos, raw_kp, raw_kd)
         packet_without_crc = HEAD_TX + payload
@@ -179,6 +191,7 @@ class UnitreeMotorSDK:
                 "position_target_source": self.position_target_source,
                 "target_cont_rad": pos_cont,
                 "wire_target_raw": raw_pos,
+                "wire_packet_hex": full_packet.hex(),
                 "wire_target_cont_rad": raw_pos / K_POS / GEAR_RATIO,
                 "sdk_kp": kp, "sdk_kd": kd,
                 "wire_kp_raw": raw_kp, "wire_kd_raw": raw_kd,
@@ -255,6 +268,7 @@ class UnitreeMotorSDK:
         st.torque_nm = outputTor
         st.speed_rads = outputSpd
         st.pos_rad = outputPos
+        st.raw_torque = torque
         st.raw_pos = pos
         st.raw_speed = speed
         st.raw_outpos = OutPos

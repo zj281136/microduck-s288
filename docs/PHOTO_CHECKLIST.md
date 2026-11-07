@@ -65,9 +65,9 @@
 | [docs/07-deployment.md](../docs/07-deployment.md) | 插入同版本STAND/RL启动终端截图与日志位置示意 |
 | [docs/07_engineering_notes/communication_analysis.md](../docs/07_engineering_notes/communication_analysis.md) | 插入实际总线拓扑、各段线长及连接器照片 |
 | [docs/07_engineering_notes/communication_analysis.md](../docs/07_engineering_notes/communication_analysis.md) | 插入修复前后同条件请求数、错误数、延迟和电压曲线 |
-| [docs/07_engineering_notes/pd_vs_bam.md](../docs/07_engineering_notes/pd_vs_bam.md) | 插入同一输入下PD近似与M1的target/q/qdot/torque对照曲线，注明模型与负载 |
+| [docs/07_engineering_notes/pd_vs_bam.md](../docs/07_engineering_notes/pd_vs_bam.md) | 插入同一输入下PD近似与M4的target/q/qdot/torque对照曲线，注明模型与负载 |
 | [docs/07_engineering_notes/pd_vs_bam.md](../docs/07_engineering_notes/pd_vs_bam.md) | 插入S288辨识台架、传感器和安装参考照片 |
-| [docs/07_engineering_notes/sim2real.md](../docs/07_engineering_notes/sim2real.md) | 插入历史反馈A/B对照图，注明旧M1模型、共同时间窗口、供电和保护条件 |
+| [docs/07_engineering_notes/sim2real.md](../docs/07_engineering_notes/sim2real.md) | 插入本版行走日志，注明模型、时间窗口、供电和保护条件 |
 | [docs/07_engineering_notes/sim2real.md](../docs/07_engineering_notes/sim2real.md) | 插入同target replay的rotor/target-error/torque/IMU对照，注明初始状态限制 |
 | [docs/07_engineering_notes/xl330_vs_s288.md](../docs/07_engineering_notes/xl330_vs_s288.md) | 插入上游与S288控制链路对照图，标明有意保留和替换的部分 |
 | [docs/08-troubleshooting.md](../docs/08-troubleshooting.md) | 插入典型abort snapshot与CSV时间轴示例，隐去机器专用信息 |

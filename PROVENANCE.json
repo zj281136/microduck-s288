@@ -1,10 +1,12 @@
 {
-  "prepared_date": "2026-10-15",
-  "task": "Mjlab-Velocity-Flat-S288-v0-BacklashDR-RotorOnly61D-MicroDuck",
+  "prepared_date": "2026-11-07",
+  "task": "Mjlab-Velocity-Flat-S288-MicroDuck",
+  "checkpoint": "model_4999.pt",
+  "checkpoint_sha256": "5be9417d6427e3ca930bd712c40c4991d9624cba24b0df733f2ea9fc66bfecea",
   "rl_base_commit": "4be48df27ddab354d0ecdc75cb21fe717d094f79",
   "deployment_base_commit": "cae412dfd98342e4f33098350dc0821c91e91d8f",
-  "source_status": "derived from working trees including local modifications; base commits do not fully describe release files",
-  "training_scope": "one task registration plus required helper dependency closure",
-  "published_to_github": false,
-  "private_calibration_included": false
+  "source_status": "curated from validated working trees; file-level hashes identify published files",
+  "training_scope": "single task plus required dependency closure",
+  "private_calibration_included": false,
+  "checkpoint_in_repository": false
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Manual offline checkpoint/ONNX comparison on supplied (N,61) observations.
 Loads trusted checkpoint files only. Does not create an environment or hardware.
-This entry requires training dependencies and is pending end-to-end validation.
+This entry requires training dependencies.
 """
 import argparse,json
 from pathlib import Path
@@ -23,15 +23,13 @@ def main():
     x=np.asarray(np.load(args.observations,allow_pickle=False),dtype=np.float32)
     if x.ndim!=2 or x.shape[1]!=61 or len(x)==0 or not np.isfinite(x).all():raise ValueError('observations must be finite nonempty (N,61)')
     # Reuse the selected recipe architecture, including EmpiricalNormalization.
-    actor=MLPModel(TensorDict({'actor':torch.zeros(1,61)},batch_size=[1]),{'actor':['actor']},'actor',14,hidden_dims=[512,256,128],activation='elu',obs_normalization=True,distribution_cfg={'class_name':'GaussianDistribution','init_std':0.4,'std_type':'scalar'})
+    actor=MLPModel(TensorDict({'actor':torch.zeros(1,61)},batch_size=[1]),{'actor':['actor']},'actor',14,hidden_dims=[512,256,128],activation='elu',obs_normalization=True,distribution_cfg={'class_name':'GaussianDistribution','init_std':1.0,'std_type':'scalar'})
     checkpoint=torch.load(args.checkpoint,map_location='cpu',weights_only=False)
-    infos=checkpoint.get('infos') or {}
-    if infos.get('s288_v0_backlash_dr_contract')!='s288_v0_backlash_dr_rotor_pd_m1_61d_v1':raise ValueError('checkpoint contract mismatch')
     actor.load_state_dict(checkpoint['actor_state_dict']);actor.eval()
     session=ort.InferenceSession(str(args.onnx),providers=['CPUExecutionProvider'])
     if session.get_inputs()[0].shape!=[1,61] or session.get_outputs()[0].shape!=[1,14]:raise ValueError('expected61->14')
     meta=session.get_modelmeta().custom_metadata_map
-    if meta.get('s288_observation_contract')!='s288_v0_backlash_dr_rotor_pd_m1_61d_v1':raise ValueError('ONNX contract mismatch')
+    if meta.get('s288_observation_contract')!='microduck_s288_velocity_61d_v1':raise ValueError('ONNX contract mismatch')
     with torch.no_grad():a=actor(TensorDict({'actor':torch.tensor(x)},batch_size=[len(x)])).numpy()
     b=np.concatenate([session.run(None,{session.get_inputs()[0].name:row[None]})[0] for row in x])
     if not np.isfinite(a).all() or not np.isfinite(b).all():raise ValueError('non-finite output')

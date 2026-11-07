@@ -1,4 +1,4 @@
-# Curated S288 rotor-only dependency subset; see THIRD_PARTY_NOTICES.md.
+# S288 velocity dependency subset; see THIRD_PARTY_NOTICES.md.
 """Microduck velocity (walking) environment.
 
 The main locomotion task: velocity-command tracking + head-pose commands.
@@ -18,8 +18,6 @@ gait/feet terms, curriculum-ramped action-rate smoothing), with:
 """
 
 import math
-
-import dataclasses
 
 from copy import deepcopy
 
@@ -123,7 +121,7 @@ from mjlab.tasks.velocity.velocity_env_cfg import make_velocity_env_cfg
 
 from mjlab.utils.noise import UniformNoiseCfg as Unoise
 
-from mjlab_microduck.robot.microduck_constants import MICRODUCK_J288_V1_WALK_ROBOT_CFG, MICRODUCK_S288_V0_WALK_ROBOT_CFG, MICRODUCK_S288_M1_BAM_WALK_ROBOT_CFG, MICRODUCK_WALK_ROBOT_CFG
+from mjlab_microduck.robot.microduck_constants import MICRODUCK_WALK_ROBOT_CFG
 
 from mjlab_microduck.tasks import mdp as microduck_mdp
 
@@ -905,188 +903,6 @@ def make_microduck_velocity_env_cfg(
 
     return cfg
 
-def make_microduck_j288_v1_velocity_env_cfg(
-    play: bool = False,
-    rough: bool = False,
-) -> ManagerBasedRlEnvCfg:
-    """Velocity task with the measured first-pass Unitree J288 actuator."""
-    cfg = make_microduck_velocity_env_cfg(play=play, rough=rough)
-    cfg.scene.entities = {"robot": MICRODUCK_J288_V1_WALK_ROBOT_CFG}
-
-    # The sequential 14-motor bus returns positions that are about 8--16 ms
-    # old when the next 50 Hz policy observation is built.  Randomize the actor
-    # view over 0--1 policy steps; keep the privileged critic instantaneous.
-    joint_pos_obs = cfg.observations["actor"].terms["joint_pos"]
-    joint_pos_obs.delay_min_lag = 0
-    joint_pos_obs.delay_max_lag = 1
-    joint_pos_obs.delay_update_period = 64
-
-    # Velocity-only J288 phase: preserve the deployed 61D observation contract,
-    # but zero-pad the 4D head and 6D body command slots.  Head tracking remains
-    # as a light posture stabilizer around J288_HOME_FRAME; it is no longer an
-    # externally commanded task.
-    cfg.commands["head_pose"].ranges = ((0.0, 0.0),) * 4
-    cfg.commands["body_pose"].ranges = ((0.0, 0.0),) * 6
-    cfg.curriculum.pop("head_pose_range", None)
-    cfg.curriculum.pop("body_pose_range", None)
-    cfg.curriculum.pop("head_pose_bias_weight", None)
-    # Let the nominal gait settle before asking it to handle stronger pushes.
-    if "push_robot" in cfg.events and not play:
-        cfg.events["push_robot"].interval_range_s = (5.0, 9.0)
-        cfg.events["push_robot"].params["velocity_range"] = {
-            "x": (-0.2, 0.2),
-            "y": (-0.2, 0.2),
-        }
-
-    # These two hooks modify only the canonical XL330 BAM actuator. Leaving
-    # them enabled on J288 would be a silent no-op and misleading in run cfgs.
-    cfg.events.pop("expand_bam_friction_fields", None)
-    cfg.events.pop("randomize_joint_friction", None)
-    if not play:
-        cfg.events["randomize_joint_friction"] = EventTermCfg(
-            func=microduck_mdp.randomize_dof_field_scaled,
-            mode="reset",
-            params={
-                "asset_cfg": SceneEntityCfg(
-                    "robot", joint_names=(r"^(?!passive_).*",)
-                ),
-                "field": "dof_frictionloss",
-                # Scale the identified nominal M1 Coulomb friction independently
-                # per joint/env (0.02267 N.m -> about 0.0151--0.0302 N.m).
-                "scale_range": (2.0 / 3.0, 4.0 / 3.0),
-            },
-        )
-    # The shared XL330 task intentionally retains a historical right-hip body
-    # in HEAD_BODY_NAMES. Correct it for new J288 runs so head CoM DR affects
-    # only the four actual head/neck bodies.
-    if "randomize_head_com" in cfg.events:
-        cfg.events["randomize_head_com"].params["asset_cfg"] = SceneEntityCfg(
-            "robot",
-            body_names=("neck", "neck_pitch", "yaw_roll_motion", "jaw_soft"),
-        )
-    # The first policy was trained with fixed gains. The current hardware
-    # profile differs by joint, so train the J288 variant with a conservative
-    # ±10% envelope around that measured profile. Playback remains deterministic.
-    if not play:
-        cfg.events["randomize_motor_gains"] = EventTermCfg(
-            func=microduck_mdp.randomize_delayed_actuator_gains,
-            mode="reset",
-            params={
-                "asset_cfg": SceneEntityCfg("robot"),
-                "operation": "scale",
-                "kp_range": (0.9, 1.1),
-                "kd_range": (0.9, 1.1),
-            },
-        )
-    return cfg
-
-def make_microduck_s288_v0_velocity_env_cfg(
-    play: bool = False,
-    rough: bool = False,
-) -> ManagerBasedRlEnvCfg:
-    """V0 revision 2: 61D rotor-only PD+M1, rigid transmission assumption.
-
-    Same model coordinate is used by PD, proprioception and physical links.
-    No OutPos mapping or passive transmission joint is introduced.
-    """
-    cfg = make_microduck_s288_m1_bam_velocity_env_cfg(play=play, rough=rough)
-    cfg.scene.entities = {"robot": MICRODUCK_S288_V0_WALK_ROBOT_CFG}
-    # J288's velocity-only recipe zero-pads the head command and removes its
-    # range curriculum. V0 trains the four neck/head command slots again.
-    cfg.commands["head_pose"].ranges = (
-        (-0.05, 0.05),   # neck_pitch, delta from HOME
-        (-0.05, 0.05),   # head_pitch
-        (-0.07, 0.07),   # head_yaw
-        (-0.015, 0.015), # head_roll
-    )
-    cfg.curriculum["head_pose_range"] = CurriculumTermCfg(
-        func=microduck_mdp.pose_command_range_curriculum,
-        params={"command_name": "head_pose", "range_stages": [
-            {"step": 0, "ranges": ((-0.05, 0.05), (-0.05, 0.05), (-0.07, 0.07), (-0.015, 0.015))},
-            {"step": 500 * NUM_STEPS_PER_ENV, "ranges": ((-0.17, 0.17), (-0.17, 0.17), (-0.21, 0.21), (-0.047, 0.047))},
-            {"step": 1000 * NUM_STEPS_PER_ENV, "ranges": ((-0.39, 0.39), (-0.39, 0.39), (-0.49, 0.49), (-0.11, 0.11))},
-            {"step": 1500 * NUM_STEPS_PER_ENV, "ranges": ((-0.72, 0.72), (-0.72, 0.72), (-0.91, 0.91), (-0.20, 0.20))},
-            {"step": 2000 * NUM_STEPS_PER_ENV, "ranges": ((-1.10, 1.10), (-1.10, 1.10), (-1.40, 1.40), (-0.31, 0.31))},
-        ]},
-    )
-    # The tracking reward already measures these commands. Restore its delayed
-    # DC-bias cost so a heavy head can oscillate while walking without a
-    # persistent droop becoming free.
-    cfg.curriculum["head_pose_bias_weight"] = CurriculumTermCfg(
-        func=microduck_mdp.reward_weight,
-        params={"reward_name": "head_pose_bias", "weight_stages": [
-            {"step": 0, "weight": 0.0},
-            {"step": 600 * NUM_STEPS_PER_ENV, "weight": 1.0},
-            {"step": 1000 * NUM_STEPS_PER_ENV, "weight": 2.0},
-            {"step": 1500 * NUM_STEPS_PER_ENV, "weight": 3.0},
-        ]},
-    )
-    # Output-equivalent speed soft limit: allow normal motion below 4 rad/s.
-    cfg.rewards["servo_overspeed"] = RewardTermCfg(
-        func=microduck_mdp.servo_joint_overspeed_l2,
-        weight=-0.05,
-        params={"threshold": 4.0},
-    )
-    cfg.curriculum["servo_overspeed_weight"] = CurriculumTermCfg(
-        func=microduck_mdp.reward_weight,
-        params={"reward_name": "servo_overspeed", "weight_stages": [
-            {"step": 0, "weight": -0.05},
-            {"step": 500 * NUM_STEPS_PER_ENV, "weight": -0.1},
-            {"step": 1000 * NUM_STEPS_PER_ENV, "weight": -0.2},
-        ]},
-    )
-    # Retain gentle exploration, then double the previous final smoothness cost.
-    cfg.curriculum["action_rate_weight"].params["weight_stages"] = [
-        {"step": 0, "weight": -0.1},
-        {"step": 500 * NUM_STEPS_PER_ENV, "weight": -0.4},
-        {"step": 750 * NUM_STEPS_PER_ENV, "weight": -0.8},
-        {"step": 1000 * NUM_STEPS_PER_ENV, "weight": -1.2},
-        {"step": 1250 * NUM_STEPS_PER_ENV, "weight": -1.6},
-        {"step": 1500 * NUM_STEPS_PER_ENV, "weight": -2.0},
-    ]
-    # S288 reads rotor position and speed from the same cached motor packet.
-    # Cover packet age by 0--20 ms for both, not XL330's fixed speed-filter lag.
-    for name in ("joint_pos", "joint_vel"):
-        term = cfg.observations["actor"].terms[name]
-        term.delay_min_lag = 0
-        term.delay_max_lag = 1
-        term.delay_update_period = 64
-    # OutPos-derived sensor bias is not part of this rotor-only baseline.
-    cfg.events.pop("encoder_bias", None)
-    for group in ("actor", "critic"):
-        cfg.observations[group].terms["joint_pos"].params["biased"] = False
-    if play:
-        cfg.events.pop("push_robot", None)
-    return cfg
-
-def make_microduck_s288_m1_bam_velocity_env_cfg(
-    play: bool = False,
-    rough: bool = False,
-) -> ManagerBasedRlEnvCfg:
-    """S288 walking with the fitted BAM M1 firmware-PD actuator.
-
-    Separate from v0 because changing the actuator invalidates old checkpoints.
-    """
-    cfg = make_microduck_j288_v1_velocity_env_cfg(play=play, rough=rough)
-    cfg.events.pop("randomize_motor_gains", None)
-    cfg.scene.entities = {"robot": MICRODUCK_S288_M1_BAM_WALK_ROBOT_CFG}
-    cfg.events["expand_bam_friction_fields"] = EventTermCfg(
-        func=microduck_mdp.expand_bam_friction_fields,
-        mode="startup",
-    )
-    if not play:
-        cfg.events["randomize_joint_friction"] = EventTermCfg(
-            func=microduck_mdp.randomize_bam_friction,
-            mode="reset",
-            params={
-                "asset_cfg": SceneEntityCfg("robot"),
-                "scale_range": (2.0 / 3.0, 4.0 / 3.0),
-            },
-        )
-        # The fitted S288 data contains one motor. Keep gains fixed until the
-        # spread across all 14 motors is measured; no arbitrary ±10% DR.
-    return cfg
-
 MicroduckRlCfg = RslRlOnPolicyRunnerCfg(
     actor=RslRlModelCfg(
         hidden_dims=(512, 256, 128),
@@ -1124,18 +940,4 @@ MicroduckRlCfg = RslRlOnPolicyRunnerCfg(
     save_interval=250,
     num_steps_per_env=24,
     max_iterations=50_000,
-)
-
-MicroduckS288V0RlCfg = dataclasses.replace(
-    MicroduckRlCfg,
-    actor=dataclasses.replace(
-        MicroduckRlCfg.actor,
-        distribution_cfg={
-            "class_name": "GaussianDistribution",
-            "init_std": 0.4,
-            "std_type": "scalar",
-        },
-    ),
-    experiment_name="velocity_s288_v0_rotor_pd_m1",
-    run_name="s288_v0_rotor_pd_m1",
 )

@@ -32,13 +32,11 @@ deployment.DEFAULT_POLICY = SCRIPT_DIR / "models" / "microduck_s288_velocity.onn
 deployment.DEFAULT_STANDUP_POLICY = None
 deployment.DEFAULT_LOG_DIR = SCRIPT_DIR / "logs" / "real_imu_s288"
 deployment.HARDWARE_NAME = "S288"
-# The 11 rad/s limit is a MOTOR torque-speed parameter in training, not a
-# commanded-position slew cap.  Keep the mechanical joint-range guard.
+# This field is an optional target-slew ceiling. Slew is disabled; keep the
+# mechanical joint-range guard. The velocity entry sets feedback speed protection.
 deployment.MAX_TARGET_SPEED_LIMIT = 11.0
 deployment.DEFAULT_TARGET_SPEED = None
-# S288 model_4500 was trained with unfiltered targets.  The upstream robotd
-# runtime has head=0.5 / legs=0.7, while the corresponding mjlab action path
-# has no filter.  Match this checkpoint until a filtered training run exists.
+# Training uses unfiltered targets; preserve that action path.
 deployment.HEAD_TARGET_LOWPASS = None
 deployment.LEGS_TARGET_LOWPASS = None
 # The firmware owns torque saturation. Projecting a second PD envelope onto

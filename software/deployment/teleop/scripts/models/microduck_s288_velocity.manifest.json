@@ -1,0 +1,44 @@
+{
+  "task": "Mjlab-Velocity-Flat-S288-MicroDuck",
+  "checkpoint": "model_4999.pt",
+  "checkpoint_sha256": "5be9417d6427e3ca930bd712c40c4991d9624cba24b0df733f2ea9fc66bfecea",
+  "onnx_sha256": "d0a8cad7b8a77ab8e20f35a680f59e2d50ac336a9f248f7d1b54013330e92eee",
+  "metadata": {
+    "run_path": "model_4999.pt",
+    "joint_names": "left_hip_yaw,left_hip_roll,left_hip_pitch,left_knee,left_ankle,neck_pitch,head_pitch,head_yaw,head_roll,right_hip_yaw,right_hip_roll,right_hip_pitch,right_knee,right_ankle",
+    "joint_stiffness": "1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000,1.000",
+    "joint_damping": "-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000,-0.000",
+    "default_joint_pos": "0.000,-0.091,-0.302,0.042,0.312,0.172,0.264,0.000,0.000,0.000,0.091,0.302,-0.042,-0.312",
+    "command_names": "twist,head_pose,body_pose",
+    "observation_names": "base_ang_vel,projected_gravity,joint_pos,joint_vel,actions,command,head_command,body_command",
+    "action_scale": "1.0",
+    "s288_observation_contract": "microduck_s288_velocity_61d_v1",
+    "s288_dynamics_variant": "s288_hybrid_m4",
+    "s288_position_source": "rotor",
+    "s288_qdot_extra_delay_steps": "0",
+    "s288_kp_sdk": "1.171875e-05",
+    "s288_kd_sdk": "0.0",
+    "s288_kp_wire": "15",
+    "s288_kd_wire": "0",
+    "s288_friction_model": "m4",
+    "s288_fit_actuator": "s288_hybrid12",
+    "s288_output_torque_limit_nm": "0.6",
+    "s288_torque_limit_voltage_scaling": "disabled",
+    "s288_voltage_randomization": "disabled",
+    "s288_electrical_model": "disabled",
+    "s288_action_filter_mode": "none",
+    "s288_fit_sha256": "2b149b92cded7e0bde1b5b277f27729637283aa957b59ef3ad9a738bd4c59895",
+    "s288_fit_parameters": "{\"actuator\": \"s288_hybrid12\", \"alpha\": 7.161462116505558, \"armature\": 0.0008489643786157858, \"command_delay\": 0.0029063016859105155, \"dtheta_stribeck\": 0.36395850839225263, \"friction_base\": 0.019974823838313206, \"friction_stribeck\": 0.0012358688789385242, \"friction_viscous\": 0.008643787962279888, \"load_friction_base\": 0.08667351939800902, \"load_friction_stribeck\": 0.00914282788837853, \"max_torque\": 0.4586223946372945, \"model\": \"m4\", \"q_offset\": 0.016557552004307932, \"ratio\": 1.0}"
+  },
+  "hardware_calibration_included": false,
+  "input_shape": [
+    1,
+    61
+  ],
+  "output_shape": [
+    1,
+    14
+  ],
+  "normalization": "baked_into_ONNX",
+  "iteration": 4999
+}

@@ -1,4 +1,4 @@
-# Curated S288 rotor-only dependency subset; see THIRD_PARTY_NOTICES.md.
+# S288 velocity dependency subset; see THIRD_PARTY_NOTICES.md.
 """MDP functions for microduck tasks"""
 
 """MDP functions for microduck tasks"""
@@ -281,6 +281,45 @@ def robot_state_is_nan(
         if force is not None:
             bad |= ~torch.isfinite(force).flatten(start_dim=1).all(dim=1)
     return bad
+
+def joint_pos_limit_proximity(
+    env: ManagerBasedRlEnv,
+    asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+    margin: float = 0.15,
+) -> torch.Tensor:
+    """L1 penalty for joint positions entering a ``margin`` (rad) band next to
+    their *hard* range limits.
+
+    The base ``joint_pos_limits`` reward only fires past the *soft* limit
+    (global ``soft_joint_pos_limit_factor`` = 0.9 → roughly the last 7.5% of
+    range) and only by the radians-overshoot magnitude, so it's near-useless
+    against a joint parked on its stop. This term instead reads the *hard*
+    limits directly and lets each reward set its own wide margin, scoped to
+    specific joints.
+
+    Motivating case: with a low-kp position servo and wide ctrlrange the policy
+    can command far past a joint's limit "for free" (no command-side cost) and
+    park the joint on its hard stop — e.g. hip_yaw slammed to ±limit so the foot
+    slides/pivots. The overshoot is *intended* (it's how a low-kp servo reaches
+    its target), so the deterrent must live on the qpos side and bite well
+    before the stop.
+
+    For each selected joint with hard limits ``[lo, hi]``::
+
+        soft_lo = lo + margin,  soft_hi = hi - margin
+        penalty = relu(soft_lo - q) + relu(q - soft_hi)
+
+    summed over joints: zero in the interior, ramping linearly toward each stop.
+    """
+    asset = env.scene[asset_cfg.name]
+    jnt_ids = asset_cfg.joint_ids
+    q = asset.data.joint_pos[:, jnt_ids]
+    hard = asset.data.joint_pos_limits[:, jnt_ids]  # (num_envs, num_sel_joints, 2)
+    soft_lo = hard[..., 0] + margin
+    soft_hi = hard[..., 1] - margin
+    below = (soft_lo - q).clip(min=0.0)
+    above = (q - soft_hi).clip(min=0.0)
+    return torch.sum(below + above, dim=-1)
 
 def randomize_delayed_actuator_gains(
     env: ManagerBasedRlEnv,
@@ -1037,126 +1076,3 @@ def randomize_dof_field_scaled(
     scales = torch.rand(num_envs, num_dofs, device=env.device) * (hi - lo) + lo
     mf[env_ids[:, None], dof_indices] *= scales
     return torch.tensor(float(hi))
-
-@requires_model_fields("jnt_range")
-def randomize_s288_passive_backlash(
-    env: ManagerBasedRlEnv,
-    env_ids: torch.Tensor | None,
-    half_width_range_deg: tuple[float, float] = (1.0, 2.0),
-    asset_cfg: SceneEntityCfg = SceneEntityCfg(
-        "robot", joint_names=(r"^passive_.*_backlash$",)
-    ),
-) -> None:
-    """Sample actual passive limits and initial play occupancy once per reset.
-
-    Each env/joint receives a symmetric physical range [-h,+h], with h
-    uniformly sampled in 1--2 degrees (total play 2--4 degrees). Passive q is
-    uniformly sampled inside that range, with zero initial passive velocity.
-    The actor and firmware PD still read only active rotor states. This event
-    must run AFTER the usual joint reset; it adds no observation offsets.
-    Ranges are assigned absolutely, so partial/repeated resets never accumulate.
-    """
-    lo, hi = half_width_range_deg
-    if not 0 < lo <= hi:
-        raise ValueError("backlash half-width must satisfy 0 < lo <= hi")
-    asset: Entity = env.scene[asset_cfg.name]
-    joint_ids = asset_cfg.joint_ids
-    if isinstance(joint_ids, slice):
-        joint_ids = list(range(asset.num_joints))[joint_ids]
-    joint_ids = torch.as_tensor(joint_ids, device=env.device, dtype=torch.long)
-    if joint_ids.numel() != 14 or any(
-        not (asset.joint_names[j].startswith("passive_")
-             and asset.joint_names[j].endswith("_backlash"))
-        for j in joint_ids.tolist()
-    ):
-        raise ValueError("S288 backlash DR requires exactly 14 passive backlash joints")
-    env_ids = (torch.arange(env.num_envs, device=env.device, dtype=torch.long)
-               if env_ids is None else env_ids.to(device=env.device, dtype=torch.long))
-    half_width = (lo + (hi - lo) * torch.rand(
-        (len(env_ids), len(joint_ids)), device=env.device
-    )) * (math.pi / 180.0)
-    limits = torch.stack((-half_width, half_width), dim=-1)
-    global_ids = asset.indexing.joint_ids[joint_ids]
-    env.sim.model.jnt_range[env_ids[:, None], global_ids] = limits
-    asset.data.joint_pos_limits[env_ids[:, None], joint_ids] = limits
-    soft_factor = (asset.cfg.articulation.soft_joint_pos_limit_factor
-                   if asset.cfg.articulation else 1.0)
-    asset.data.soft_joint_pos_limits[env_ids[:, None], joint_ids] = limits * soft_factor
-    passive_q = (2.0 * torch.rand_like(half_width) - 1.0) * half_width
-    asset.write_joint_state_to_sim(
-        passive_q, torch.zeros_like(passive_q), env_ids=env_ids, joint_ids=joint_ids
-    )
-
-def _backlash_encoder_ids(
-    env: "ManagerBasedRlEnv",
-    asset: Entity,
-    asset_cfg: SceneEntityCfg,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """(main_ids, backlash_ids, mask) — cached per (entity, joint selection).
-
-    mask is 1.0 where a matching passive_<name>_backlash joint exists, so the
-    same obs functions run unchanged on models without backlash joints.
-    """
-    key = (asset_cfg.name, str(asset_cfg.joint_ids))
-    cache = env.__dict__.setdefault("_backlash_encoder_cache", {})
-    hit = cache.get(key)
-    if hit is not None:
-        return hit
-
-    names = asset.joint_names
-    jnt_ids = asset_cfg.joint_ids
-    if isinstance(jnt_ids, slice):
-        main_ids = list(range(len(names)))[jnt_ids]
-    else:
-        main_ids = [int(i) for i in jnt_ids]
-    name_to_id = {n: i for i, n in enumerate(names)}
-    bl_ids, mask = [], []
-    for i in main_ids:
-        bl = name_to_id.get(f"passive_{names[i]}_backlash")
-        bl_ids.append(0 if bl is None else bl)
-        mask.append(0.0 if bl is None else 1.0)
-
-    device = asset.data.joint_pos.device
-    out = (
-        torch.tensor(main_ids, dtype=torch.long, device=device),
-        torch.tensor(bl_ids, dtype=torch.long, device=device),
-        torch.tensor(mask, dtype=torch.float32, device=device),
-    )
-    cache[key] = out
-    return out
-
-def joint_pos_rel_backlash(
-    env: "ManagerBasedRlEnv",
-    biased: bool = False,
-    asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
-) -> torch.Tensor:
-    """joint_pos_rel where the encoder reads through the backlash hinge.
-
-    Returns (qpos[servo] + qpos[backlash]) - default[servo]. With biased=True
-    the per-env encoder-calibration bias is applied to the servo reading (one
-    encoder per servo → one bias per joint; the backlash summand stays raw).
-    """
-    asset: Entity = env.scene[asset_cfg.name]
-    main_ids, bl_ids, mask = _backlash_encoder_ids(env, asset, asset_cfg)
-    joint_pos = asset.data.joint_pos_biased if biased else asset.data.joint_pos
-    pos = joint_pos[:, main_ids] + asset.data.joint_pos[:, bl_ids] * mask
-    default_joint_pos = asset.data.default_joint_pos
-    assert default_joint_pos is not None
-    return pos - default_joint_pos[:, main_ids]
-
-def joint_vel_rel_backlash(
-    env: "ManagerBasedRlEnv",
-    asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
-) -> torch.Tensor:
-    """Output-side joint velocity across the backlash hinge.
-
-    This is the output/output policy-observation ablation for S288. Its real
-    protocol speed is rotor-side, represented by
-    joint_vel_rel_backlash_motor_side in the mixed-feedback task.
-    """
-    asset: Entity = env.scene[asset_cfg.name]
-    main_ids, bl_ids, mask = _backlash_encoder_ids(env, asset, asset_cfg)
-    vel = asset.data.joint_vel[:, main_ids] + asset.data.joint_vel[:, bl_ids] * mask
-    default_joint_vel = asset.data.default_joint_vel
-    assert default_joint_vel is not None
-    return vel - default_joint_vel[:, main_ids]

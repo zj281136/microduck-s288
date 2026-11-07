@@ -14,9 +14,12 @@ import csv
 import hashlib
 import json
 import math
+import multiprocessing
+import queue
 import signal
 import sys
 import time
+import traceback
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
@@ -78,6 +81,12 @@ LEGS_TARGET_LOWPASS: float | None = None
 # HOME transition; an entry point may override it with a measured policy
 # equilibrium.
 POLICY_ENTRY_ACTION = (0.0,) * ACTION_SIZE
+# Optional hardware-entry diagnostic, called at --print-rate with same-cycle
+# quantized wire targets and post-command feedback in model coordinates.
+JOINT_COMPARISON_PRINTER = None
+# Opt-in: keep a fixed clock grid after small overruns instead of accumulating
+# their lateness into the next period. Large stalls skip whole expired periods.
+PRESERVE_POLICY_CLOCK_PHASE = False
 # Optional legacy target projection. The motor's own torque limit is separate
 # from this target rewrite; hardware wrappers may leave these values at None.
 PD_GAIN_OUTPUT_SCALE: float | None = None
@@ -88,9 +97,190 @@ OBSERVATION_MODE = "legacy_61"
 DEFAULT_POLICY_POSITION_SOURCE = "outpos"
 DEFAULT_STAND_RAMP_SECONDS = 8.0
 STAND_TRANSITION_HANDLER = None
+
+
+POLICY_LOG_FIELDS = (
+    "gyro_x", "gyro_y", "gyro_z", "gravity_x", "gravity_y", "gravity_z",
+    "vx", "vy", "yaw_rate",
+    "timestamp_imu", "timestamp_feedback_rx", "timestamp_policy_tick",
+    "timestamp_inference_start", "timestamp_inference_end", "timestamp_command_tx",
+    "qdot_rotor_raw_current", "qdot_rotor_policy_obs", "qdot_policy_source_rx_s",
+    "last_action", "requested_q_target", "head_command", "body_command",
+    "policy_qdot_delay_steps", "q_rotor", "reported_torque",
+    "elapsed_s", "loop_start_s", "observation_ready_s",
+    "inference_start_s", "inference_end_s", "command_cycle_start_s",
+    "command_cycle_end_s", "q_feedback_rx_s", "command_tx_s", "feedback_rx_s",
+    "round_ms", "inference_ms", "bus_ms", "tilt_deg", "imu_gyro",
+    "projected_gravity", "q_feedback", "dq_feedback", "torque_feedback",
+    "feedback_age_s", "q_feedback_after_command", "dq_feedback_after_command",
+    "torque_feedback_after_command", "temperature_c", "voltage_v",
+    "policy_command", "raw_action", "applied_action", "q_target", "target_velocity",
+    "friction_direction_velocity", "friction_ff_nm",
+    "estimated_requested_torque_nm", "estimated_limited_torque_nm",
+    "raw_pos_feedback", "raw_speed_feedback", "raw_outpos_feedback",
+    "raw_feedback_rx_s", "raw_pos_after_command",
+    "raw_speed_after_command", "raw_outpos_after_command",
+    "raw_after_command_rx_s",
+    "policy_position_source", "q_policy_obs",
+    "position_target_source", "wire_target_raw", "q_wire_target_rotor_model",
+    "output_delta_obs",
+    "q_rotor_equiv_rad", "qdot_rotor_equiv_rad_s", "q_out_rad",
+    "delta_out_minus_rotor_rad", "q_rotor_model_rad", "q_out_model_rad",
+    "raw_joint_target", "lowpass_joint_target", "limited_joint_target",
+    "actual_joint_pos", "actual_joint_vel", "position_error", "bus_voltage", "bus_voltage_after", "motor_error",
+    "control_dt", "max_target_delta", "max_target_velocity", "max_actual_velocity",
+    "max_position_error", "limiter_activation_ratio",
+)
+
+_DEFERRED_JSON_TAG = "__microduck_deferred_json_v1__"
+
+
+def deferred_json(value):
+    """Freeze an array-like value for JSON encoding in the log writer process."""
+    if isinstance(value, np.ndarray):
+        value = value.copy()
+    elif isinstance(value, list):
+        value = list(value)
+    return (_DEFERRED_JSON_TAG, value)
+
+
+def _encode_deferred_log_values(row: dict) -> dict:
+    encoded = {}
+    for key, value in row.items():
+        if (
+            isinstance(value, tuple)
+            and len(value) == 2
+            and value[0] == _DEFERRED_JSON_TAG
+        ):
+            payload = value[1]
+            if isinstance(payload, np.ndarray):
+                payload = payload.tolist()
+            encoded[key] = json.dumps(payload)
+        else:
+            encoded[key] = value
+    return encoded
+
+
+def _csv_log_worker(path: str, fields: tuple[str, ...], rows, status) -> None:
+    """Serialize diagnostic rows outside the real-time control process."""
+    try:
+        with Path(path).open("w", newline="", encoding="utf-8") as log_file:
+            writer = csv.DictWriter(log_file, fieldnames=fields)
+            writer.writeheader()
+            status.put(("ready", None))
+            last_flush = time.monotonic()
+            while True:
+                row = rows.get()
+                if row is None:
+                    break
+                writer.writerow(_encode_deferred_log_values(row))
+                now = time.monotonic()
+                if now - last_flush >= 1.0:
+                    log_file.flush()
+                    last_flush = now
+            log_file.flush()
+        status.put(("closed", None))
+    except BaseException:
+        status.put(("error", traceback.format_exc()))
+
+
+class AsyncCsvLogger:
+    """Bounded, fail-open diagnostic logger that cannot stall motor control."""
+
+    def __init__(self, path: Path, fields: tuple[str, ...], queue_size: int = 512):
+        self.path = path
+        self.fields = fields
+        self.queue_size = queue_size
+        self.dropped_rows = 0
+        self._entered = False
+        self._closed = False
+        self._ctx = multiprocessing.get_context("spawn")
+        self._rows = self._ctx.Queue(maxsize=queue_size)
+        self._status = self._ctx.Queue()
+        self._process = self._ctx.Process(
+            target=_csv_log_worker,
+            args=(str(path), fields, self._rows, self._status),
+            name="microduck-csv-writer",
+            daemon=True,
+        )
+
+    def __enter__(self):
+        if self._closed:
+            raise RuntimeError("CSV logger is already closed")
+        if self._entered:
+            return self
+        self._process.start()
+        try:
+            state, detail = self._status.get(timeout=10.0)
+        except queue.Empty as exc:
+            self._process.terminate()
+            raise RuntimeError("CSV logger process did not start") from exc
+        if state != "ready":
+            self._process.join(timeout=1.0)
+            raise RuntimeError(f"CSV logger failed to start: {detail}")
+        self._entered = True
+        return self
+
+    def _raise_worker_error(self) -> None:
+        try:
+            state, detail = self._status.get_nowait()
+        except queue.Empty:
+            return
+        if state == "error":
+            raise RuntimeError(f"CSV logger failed:\n{detail}")
+
+    def writerow(self, row: dict) -> None:
+        self._raise_worker_error()
+        try:
+            self._rows.put_nowait(row)
+        except queue.Full:
+            # Diagnostics must never steal a policy deadline. The drop count is
+            # printed at runtime so a saturated logger is visible.
+            self.dropped_rows += 1
+
+    def flush(self) -> None:
+        self._raise_worker_error()
+
+    def close(self, *, drain: bool) -> None:
+        if self._closed:
+            return
+        if not self._entered:
+            self._closed = True
+            return
+        if not self._process.is_alive():
+            self._raise_worker_error()
+            self._closed = True
+            return
+        if drain:
+            try:
+                self._rows.put(None, timeout=2.0)
+            except queue.Full:
+                self._process.terminate()
+            else:
+                self._process.join(timeout=10.0)
+        else:
+            try:
+                self._rows.put_nowait(None)
+            except queue.Full:
+                pass
+            self._process.join(timeout=0.05)
+        if self._process.is_alive():
+            self._process.terminate()
+            self._process.join(timeout=1.0)
+        if drain:
+            self._raise_worker_error()
+        self._closed = True
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close(drain=exc_type is None)
+        return False
+
+
 # Optional terminal command source used by a dedicated keyboard entry point.
 # Existing fixed-command deployments leave this unset.
 COMMAND_SOURCE = None
+# Opt-in only: matched filtered checkpoints have a separate entry point.
+TARGET_PROCESSOR_FACTORY = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -439,6 +629,27 @@ def benchmark_policy(session, input_name: str, output_name: str, maximum_ms: flo
     return p95
 
 
+def plan_policy_deadline(
+    previous_deadline: float, now: float, period: float, *, preserve_phase: bool
+) -> tuple[float, float, float, int]:
+    """Return next clock deadline, sleep, lateness and skipped whole periods.
+
+    A small overrun can be recovered with the next fresh-feedback control
+    cycle. Do not change the clock origin on every overrun. A long stall skips
+    expired periods instead of scheduling a burst of old ticks.
+    """
+    deadline = previous_deadline + period
+    late = max(0.0, now - deadline)
+    skipped = 0
+    if late > 0:
+        if preserve_phase:
+            skipped = int(late // period)
+            deadline += skipped * period
+        else:
+            deadline = now
+    return deadline, max(0.0, deadline - now), late, skipped
+
+
 def validate_imu(sample, maximum_tilt_deg: float, maximum_angular_speed: float) -> float:
     gravity = np.asarray(sample.projected_gravity, dtype=np.float32)
     angular_velocity = np.asarray(sample.angular_velocity_rad_s, dtype=np.float32)
@@ -630,7 +841,13 @@ def run(args: argparse.Namespace) -> int:
     feedback_completed = None
     previous_targets = None
     started = None
+    target_processor = None
+    writer = AsyncCsvLogger(log_path, POLICY_LOG_FIELDS)
     try:
+        # Process creation is slow on a Raspberry Pi. Finish it before opening
+        # the motor bus so it can never create a command/watchdog gap between
+        # the STAND transition and the first policy command.
+        writer.__enter__()
         imu = LSM6DSV16X(args.i2c_bus, args.i2c_address)
         imu.start(args.imu_calibration_seconds)
         time.sleep(0.05)
@@ -693,15 +910,18 @@ def run(args: argparse.Namespace) -> int:
             "STAND reached. Starting 50 Hz real-IMU policy automatically: "
             f"vx={args.vx:+.3f}, vy={args.vy:+.3f}, wz={args.wz:+.3f}."
         )
-        if COMMAND_SOURCE is not None:
-            COMMAND_SOURCE.start()
 
         # Training observes the previous raw network output, before target
         # scaling, slew limiting, joint limiting, or actuator dynamics.
         qdot_delay = PolicyQdotDelay(args.policy_qdot_delay_steps)
         log_path.with_suffix(".metadata.json").write_text(json.dumps({
             "arguments": vars(args), "joint_order": POLICY_JOINT_ORDER,
+            "target_filter_metadata": {k:v for k,v in session.get_modelmeta().custom_metadata_map.items()
+                                       if k.startswith('s288_target_filter_')},
             "policy_frequency_hz": POLICY_RATE_HZ,
+            "preserve_policy_clock_phase": PRESERVE_POLICY_CLOCK_PHASE,
+            "onnx_intra_op_threads": session.get_session_options().intra_op_num_threads,
+            "onnx_inter_op_threads": session.get_session_options().inter_op_num_threads,
             "motor_command_cycle_frequency_hz": POLICY_RATE_HZ,
             "firmware_pd_frequency_hz": None,
             "gear_ratio": GEAR_RATIO, "kp_by_id": kp_by_id, "kd_by_id": kd_by_id,
@@ -722,42 +942,30 @@ def run(args: argparse.Namespace) -> int:
         last_action = entry_action.copy()
         previous_targets = entry_targets.copy()
         previous_filter_targets = None
-        started = next_tick = time.perf_counter()
-        next_print = started + 1.0 / args.print_rate
-        rounds = overruns = offset_clamps = limit_clamps = slew_clamps = 0
-        effort_clamps = 0
-        max_round_ms = max_inference_ms = 0.0
-        fields = (
-            "gyro_x", "gyro_y", "gyro_z", "gravity_x", "gravity_y", "gravity_z",
-            "vx", "vy", "yaw_rate",
-            "timestamp_imu", "timestamp_feedback_rx", "timestamp_policy_tick",
-            "timestamp_inference_start", "timestamp_inference_end", "timestamp_command_tx",
-            "qdot_rotor_raw_current", "qdot_rotor_policy_obs", "qdot_policy_source_rx_s",
-            "last_action", "requested_q_target", "head_command", "body_command",
-            "policy_qdot_delay_steps", "q_rotor", "reported_torque",
-            "elapsed_s", "loop_start_s", "observation_ready_s",
-            "inference_start_s", "inference_end_s", "command_cycle_start_s",
-            "command_cycle_end_s", "q_feedback_rx_s", "command_tx_s", "feedback_rx_s",
-            "round_ms", "inference_ms", "bus_ms", "tilt_deg", "imu_gyro",
-            "projected_gravity", "q_feedback", "dq_feedback", "torque_feedback",
-            "feedback_age_s", "q_feedback_after_command", "dq_feedback_after_command",
-            "torque_feedback_after_command", "temperature_c", "voltage_v",
-            "policy_command", "raw_action", "applied_action", "q_target", "target_velocity",
-            "friction_direction_velocity", "friction_ff_nm",
-            "estimated_requested_torque_nm", "estimated_limited_torque_nm",
-            "raw_pos_feedback", "raw_speed_feedback", "raw_outpos_feedback",
-            "raw_feedback_rx_s", "raw_pos_after_command",
-            "raw_speed_after_command", "raw_outpos_after_command",
-            "raw_after_command_rx_s",
-            "policy_position_source", "q_policy_obs",
-            "position_target_source", "wire_target_raw", "q_wire_target_rotor_model",
-            "output_delta_obs",
-            "q_rotor_equiv_rad", "qdot_rotor_equiv_rad_s", "q_out_rad",
-            "delta_out_minus_rotor_rad", "q_rotor_model_rad", "q_out_model_rad",
-        )
-        with log_path.open("w", newline="", encoding="utf-8") as log_file:
-            writer = csv.DictWriter(log_file, fieldnames=fields)
-            writer.writeheader()
+        fields = POLICY_LOG_FIELDS
+        with writer:
+            # The logger process is already running; only now switch stdin to
+            # cbreak mode and begin the uninterrupted policy control clock.
+            if COMMAND_SOURCE is not None:
+                COMMAND_SOURCE.start()
+            # Start the policy clock only after the logging process is ready.
+            # Process startup can take hundreds of milliseconds on a Pi and
+            # must not consume policy duration or create a false first overrun.
+            started = next_tick = time.perf_counter()
+            if TARGET_PROCESSOR_FACTORY is not None:
+                target_processor = TARGET_PROCESSOR_FACTORY(
+                    require_online_positions(states), POLICY_JOINT_ORDER,
+                    session.get_modelmeta().custom_metadata_map, started=started)
+                previous_targets = target_processor.state.previous_cmd.copy()
+            next_print = started + 1.0 / args.print_rate
+            rounds = overruns = offset_clamps = limit_clamps = slew_clamps = 0
+            skipped_policy_periods = 0
+            effort_clamps = 0
+            max_round_ms = max_inference_ms = 0.0
+            print(
+                f"ONNX POLICY ACTIVE: {args.onnx.name} at {POLICY_RATE_HZ:.1f} Hz",
+                flush=True,
+            )
             while args.duration == 0 or time.perf_counter() - started < args.duration:
                 round_started = time.perf_counter()
                 elapsed = round_started - started
@@ -841,20 +1049,30 @@ def run(args: argparse.Namespace) -> int:
                     raw_offsets = np.clip(
                         raw_offsets, -args.max_policy_offset, args.max_policy_offset
                     )
-                # robotd filters home+scale*action before the safety layer.
-                filtered_targets = lowpass_targets(
-                    q_home + raw_offsets, previous_filter_targets,
-                    HEAD_TARGET_LOWPASS, LEGS_TARGET_LOWPASS,
-                )
-                previous_filter_targets = filtered_targets.copy()
-                targets, clamped = clamp_targets(filtered_targets - q_home)
-                limit_clamps += clamped
-                if args.max_target_speed is not None:
-                    max_step = args.max_target_speed / POLICY_RATE_HZ
-                    step = targets - previous_targets
-                    slew_clamps += int(np.count_nonzero(np.abs(step) > max_step))
-                    targets = previous_targets + np.clip(step, -max_step, max_step)
-                target_velocity = (targets - previous_targets) * POLICY_RATE_HZ
+                if target_processor is not None:
+                    filtered_targets, targets = target_processor.process(
+                        requested_q_target, time.perf_counter(), raw_action=action,
+                        q=q, dq=dq, voltage=voltage)
+                    control_dt = target_processor.control_dt
+                    clamped = 0
+                else:
+                    # robotd filters home+scale*action before the safety layer.
+                    filtered_targets = lowpass_targets(
+                        q_home + raw_offsets, previous_filter_targets,
+                        HEAD_TARGET_LOWPASS, LEGS_TARGET_LOWPASS,
+                    )
+                    previous_filter_targets = filtered_targets.copy()
+                    targets, clamped = clamp_targets(filtered_targets - q_home)
+                    limit_clamps += clamped
+                    if args.max_target_speed is not None:
+                        max_step = args.max_target_speed / POLICY_RATE_HZ
+                        step = targets - previous_targets
+                        slew_clamps += int(np.count_nonzero(np.abs(step) > max_step))
+                        targets = previous_targets + np.clip(step, -max_step, max_step)
+                    target_velocity = (targets - previous_targets) * POLICY_RATE_HZ
+                    control_dt = 1.0 / POLICY_RATE_HZ
+                target_velocity = (targets - previous_targets) / control_dt
+                target_max_delta = float(np.max(np.abs(targets - previous_targets)))
                 friction_ff, friction_direction_velocity = friction_feedforward(
                     target_velocity,
                     dq,
@@ -896,6 +1114,11 @@ def run(args: argparse.Namespace) -> int:
                 dq_after = feedback_velocity(states)
                 torque_after, _, _ = feedback_telemetry(states)
                 protocol_after = raw_protocol_feedback(states)
+                if target_processor is not None:
+                    target_processor.record_after(q_after, dq_after,
+                        feedback_telemetry(states)[2],
+                        [states[name].motor_error for name in POLICY_JOINT_ORDER],
+                        time.perf_counter())
                 wire_commands = getattr(robot.sdk, "last_control_commands", {})
                 wire_raw = [
                     wire_commands.get(JOINT_TO_MOTOR_ID[name], {}).get("wire_target_raw")
@@ -951,21 +1174,21 @@ def run(args: argparse.Namespace) -> int:
                         "vx": float(policy_command[0]), "vy": float(policy_command[1]),
                         "yaw_rate": float(policy_command[2]),
                         "timestamp_imu": imu_sample.timestamp - started,
-                        "timestamp_feedback_rx": json.dumps(q_feedback_rx_policy),
+                        "timestamp_feedback_rx": deferred_json(q_feedback_rx_policy),
                         "timestamp_policy_tick": elapsed,
                         "timestamp_inference_start": inference_started - started,
                         "timestamp_inference_end": inference_ended - started,
-                        "timestamp_command_tx": json.dumps(command_tx_policy),
-                        "qdot_rotor_raw_current": json.dumps(dq.tolist()),
-                        "qdot_rotor_policy_obs": json.dumps(observation[20:34].tolist()),
-                        "qdot_policy_source_rx_s": json.dumps((qdot_source_rx - started).tolist()),
-                        "last_action": json.dumps(last_action_obs.tolist()),
-                        "requested_q_target": json.dumps(requested_q_target.tolist()),
-                        "head_command": json.dumps(head_command.tolist()),
-                        "body_command": json.dumps(body_command.tolist()),
+                        "timestamp_command_tx": deferred_json(command_tx_policy),
+                        "qdot_rotor_raw_current": deferred_json(dq),
+                        "qdot_rotor_policy_obs": deferred_json(observation[20:34]),
+                        "qdot_policy_source_rx_s": deferred_json((qdot_source_rx - started)),
+                        "last_action": deferred_json(last_action_obs),
+                        "requested_q_target": deferred_json(requested_q_target),
+                        "head_command": deferred_json(head_command),
+                        "body_command": deferred_json(body_command),
                         "policy_qdot_delay_steps": args.policy_qdot_delay_steps,
-                        "q_rotor": json.dumps(position_views["q_rotor_model_rad"]),
-                        "reported_torque": json.dumps(torque.tolist()),
+                        "q_rotor": deferred_json(position_views["q_rotor_model_rad"]),
+                        "reported_torque": deferred_json(torque),
                         "elapsed_s": f"{elapsed:.6f}",
                         "loop_start_s": f"{round_started - started:.6f}",
                         "observation_ready_s": f"{observation_ready - started:.6f}",
@@ -973,79 +1196,96 @@ def run(args: argparse.Namespace) -> int:
                         "inference_end_s": f"{inference_ended - started:.6f}",
                         "command_cycle_start_s": f"{command_timing.cycle_start_s - started:.6f}",
                         "command_cycle_end_s": f"{command_timing.cycle_end_s - started:.6f}",
-                        "q_feedback_rx_s": json.dumps(q_feedback_rx_policy),
-                        "command_tx_s": json.dumps(command_tx_policy),
-                        "feedback_rx_s": json.dumps(feedback_rx_policy),
+                        "q_feedback_rx_s": deferred_json(q_feedback_rx_policy),
+                        "command_tx_s": deferred_json(command_tx_policy),
+                        "feedback_rx_s": deferred_json(feedback_rx_policy),
                         "round_ms": f"{round_ms:.4f}",
                         "inference_ms": f"{inference_ms:.4f}",
                         "bus_ms": f"{(command_timing.cycle_end_s-command_timing.cycle_start_s)*1000.0:.4f}",
                         "tilt_deg": f"{tilt_deg:.3f}",
-                        "imu_gyro": json.dumps(imu_sample.angular_velocity_rad_s.tolist()),
-                        "projected_gravity": json.dumps(imu_sample.projected_gravity.tolist()),
-                        "q_feedback": json.dumps(q.tolist()),
+                        "imu_gyro": deferred_json(imu_sample.angular_velocity_rad_s),
+                        "projected_gravity": deferred_json(imu_sample.projected_gravity),
+                        "q_feedback": deferred_json(q),
                         "policy_position_source": args.policy_position_source,
                         "position_target_source": robot.position_target_source,
-                        "wire_target_raw": json.dumps(wire_raw),
-                        "q_wire_target_rotor_model": json.dumps(wire_q),
-                        "q_policy_obs": json.dumps(q_policy.tolist()),
-                        "output_delta_obs": json.dumps(output_delta_obs.tolist())
+                        "wire_target_raw": deferred_json(wire_raw),
+                        "q_wire_target_rotor_model": deferred_json(wire_q),
+                        "q_policy_obs": deferred_json(q_policy),
+                        "output_delta_obs": deferred_json(output_delta_obs)
                         if OBSERVATION_MODE == "rotor_output_75d" else "",
-                        "q_rotor_equiv_rad": json.dumps(position_views["q_rotor_equiv_rad"]),
-                        "qdot_rotor_equiv_rad_s": json.dumps(position_views["qdot_rotor_equiv_rad_s"]),
-                        "q_out_rad": json.dumps(position_views["q_out_rad"]),
-                        "delta_out_minus_rotor_rad": json.dumps(position_views["delta_out_minus_rotor_rad"]),
-                        "q_rotor_model_rad": json.dumps(position_views["q_rotor_model_rad"]),
-                        "q_out_model_rad": json.dumps(position_views["q_out_model_rad"]),
-                        "dq_feedback": json.dumps(dq.tolist()),
-                        "torque_feedback": json.dumps(torque.tolist()),
-                        "feedback_age_s": json.dumps(feedback_age_policy),
-                        "q_feedback_after_command": json.dumps(q_after.tolist()),
-                        "dq_feedback_after_command": json.dumps(dq_after.tolist()),
-                        "torque_feedback_after_command": json.dumps(torque_after.tolist()),
-                        "temperature_c": json.dumps(temperature.tolist()),
-                        "voltage_v": json.dumps(voltage.tolist()),
-                        "policy_command": json.dumps(policy_command.tolist()),
-                        "raw_action": json.dumps(action.tolist()),
-                        "applied_action": json.dumps(applied_action.tolist()),
-                        "q_target": json.dumps(targets.tolist()),
-                        "target_velocity": json.dumps(target_velocity.tolist()),
-                        "friction_direction_velocity": json.dumps(
-                            friction_direction_velocity.tolist()
+                        "q_rotor_equiv_rad": deferred_json(position_views["q_rotor_equiv_rad"]),
+                        "qdot_rotor_equiv_rad_s": deferred_json(position_views["qdot_rotor_equiv_rad_s"]),
+                        "q_out_rad": deferred_json(position_views["q_out_rad"]),
+                        "delta_out_minus_rotor_rad": deferred_json(position_views["delta_out_minus_rotor_rad"]),
+                        "q_rotor_model_rad": deferred_json(position_views["q_rotor_model_rad"]),
+                        "q_out_model_rad": deferred_json(position_views["q_out_model_rad"]),
+                        "dq_feedback": deferred_json(dq),
+                        "torque_feedback": deferred_json(torque),
+                        "feedback_age_s": deferred_json(feedback_age_policy),
+                        "q_feedback_after_command": deferred_json(q_after),
+                        "dq_feedback_after_command": deferred_json(dq_after),
+                        "torque_feedback_after_command": deferred_json(torque_after),
+                        "temperature_c": deferred_json(temperature),
+                        "voltage_v": deferred_json(voltage),
+                        "policy_command": deferred_json(policy_command),
+                        "raw_joint_target": deferred_json(requested_q_target),
+                        "lowpass_joint_target": deferred_json(filtered_targets),
+                        "limited_joint_target": deferred_json(targets),
+                        "actual_joint_pos": deferred_json(q),
+                        "actual_joint_vel": deferred_json(dq),
+                        "position_error": deferred_json((targets-q)),
+                        "bus_voltage": deferred_json(voltage),
+                        "bus_voltage_after": deferred_json(feedback_telemetry(states)[2]),
+                        "motor_error": deferred_json([states[name].motor_error for name in POLICY_JOINT_ORDER]),
+                        "control_dt": control_dt,
+                        "max_target_delta": target_max_delta,
+                        "max_target_velocity": float(np.max(np.abs(target_velocity))),
+                        "max_actual_velocity": float(np.max(np.abs(dq))),
+                        "max_position_error": float(np.max(np.abs(targets-q))),
+                        "limiter_activation_ratio": target_processor.active_ratio if target_processor else 0.0,
+                        "raw_action": deferred_json(action),
+                        "applied_action": deferred_json(applied_action),
+                        "q_target": deferred_json(targets),
+                        "target_velocity": deferred_json(target_velocity),
+                        "friction_direction_velocity": deferred_json(
+                            friction_direction_velocity
                         ),
-                        "friction_ff_nm": json.dumps(friction_ff.tolist()),
-                        "estimated_requested_torque_nm": json.dumps(
-                            estimated_requested_torque.tolist()
+                        "friction_ff_nm": deferred_json(friction_ff),
+                        "estimated_requested_torque_nm": deferred_json(
+                            estimated_requested_torque
                         ),
-                        "estimated_limited_torque_nm": json.dumps(
-                            estimated_limited_torque.tolist()
+                        "estimated_limited_torque_nm": deferred_json(
+                            estimated_limited_torque
                         ),
-                        "raw_pos_feedback": json.dumps(protocol_before["raw_pos"]),
-                        "raw_speed_feedback": json.dumps(protocol_before["raw_speed"]),
-                        "raw_outpos_feedback": json.dumps(protocol_before["raw_outpos"]),
-                        "raw_feedback_rx_s": json.dumps([
+                        "raw_pos_feedback": deferred_json(protocol_before["raw_pos"]),
+                        "raw_speed_feedback": deferred_json(protocol_before["raw_speed"]),
+                        "raw_outpos_feedback": deferred_json(protocol_before["raw_outpos"]),
+                        "raw_feedback_rx_s": deferred_json([
                             None if value is None else value - started
                             for value in protocol_before["raw_rx_s"]
                         ]),
-                        "raw_pos_after_command": json.dumps(protocol_after["raw_pos"]),
-                        "raw_speed_after_command": json.dumps(protocol_after["raw_speed"]),
-                        "raw_outpos_after_command": json.dumps(protocol_after["raw_outpos"]),
-                        "raw_after_command_rx_s": json.dumps([
+                        "raw_pos_after_command": deferred_json(protocol_after["raw_pos"]),
+                        "raw_speed_after_command": deferred_json(protocol_after["raw_speed"]),
+                        "raw_outpos_after_command": deferred_json(protocol_after["raw_outpos"]),
+                        "raw_after_command_rx_s": deferred_json([
                             None if value is None else value - started
                             for value in protocol_after["raw_rx_s"]
                         ]),
                     }
                 )
 
-                next_tick += 1.0 / POLICY_RATE_HZ
-                remaining = next_tick - time.perf_counter()
-                if remaining < 0:
+                next_tick, remaining, lateness, skipped = plan_policy_deadline(
+                    next_tick, time.perf_counter(), 1.0 / POLICY_RATE_HZ,
+                    preserve_phase=PRESERVE_POLICY_CLOCK_PHASE,
+                )
+                skipped_policy_periods += skipped
+                if lateness > 0:
                     overruns += 1
-                    next_tick = time.perf_counter()
-                else:
+                if remaining > 0:
                     time.sleep(remaining)
                 now = time.perf_counter()
                 if now >= next_print:
-                    log_file.flush()
+                    writer.flush()
                     temperatures = [states[name].temperature_c or 0 for name in POLICY_JOINT_ORDER]
                     print(
                         f"[REAL] t={elapsed:6.1f}s rate={rounds/max(now-started,1e-9):5.1f}Hz "
@@ -1053,14 +1293,17 @@ def run(args: argparse.Namespace) -> int:
                         f"infer={inference_ms:4.2f}ms temp={max(temperatures):d}C "
                         "clamps="
                         f"{offset_clamps}/{limit_clamps}/{slew_clamps}/{effort_clamps} "
-                        f"overruns={overruns}"
+                        f"overruns={overruns} skipped={skipped_policy_periods} log_drops={writer.dropped_rows}"
                     )
+                    if JOINT_COMPARISON_PRINTER is not None:
+                        JOINT_COMPARISON_PRINTER(elapsed, wire_q, q_after)
                     next_print += 1.0 / args.print_rate
 
         print(
             f"Completed: rounds={rounds}, overruns={overruns}, "
             f"effort_clamps={effort_clamps}, max_loop={max_round_ms:.2f}ms, "
-            f"max_inference={max_inference_ms:.2f}ms"
+            f"max_inference={max_inference_ms:.2f}ms, "
+            f"log_drops={writer.dropped_rows}"
         )
         print(f"CSV log: {log_path}")
         return 0
@@ -1071,6 +1314,7 @@ def run(args: argparse.Namespace) -> int:
         # Cache existing references only: no extra bus reads or disk I/O before stop.
         abort_snapshot = {
             "reason": f"{type(exc).__name__}: {exc}",
+            "target_filter": target_processor.snapshot() if target_processor else None,
             "timestamp_monotonic": time.monotonic(),
             "elapsed_s": None if started is None else time.perf_counter()-started,
             "imu": imu_sample,
@@ -1084,6 +1328,8 @@ def run(args: argparse.Namespace) -> int:
                     "raw_speed": state.raw_speed,
                     "raw_outpos": state.raw_outpos,
                     "feedback_rx_s": state.last_update,
+                    "voltage_v": state.voltage,
+                    "motor_error": state.MError,
                 }
                 for motor_id, state in robot.sdk.motor_states.items()
             } if robot is not None else None,
@@ -1106,6 +1352,10 @@ def run(args: argparse.Namespace) -> int:
             if robot is not None:
                 print("Applying zero-gain/zero-torque state to all motors...")
                 robot.close()
+                if abort_snapshot is not None:
+                    abort_snapshot['feedback_after_stop'] = {
+                        str(mid): dict(timestamp=st.last_update, voltage=st.voltage, motor_error=st.MError)
+                        for mid, st in robot.sdk.motor_states.items()}
                 print("Serial port closed; fall-arrest fixture must support the robot.")
         finally:
             try:
@@ -1114,6 +1364,9 @@ def run(args: argparse.Namespace) -> int:
                 if imu is not None:
                     imu.close()
             finally:
+                # This is a no-op after the normal policy-loop context exits;
+                # it cleans up startup/transition failures before that point.
+                writer.close(drain=False)
                 if abort_snapshot is not None:
                     def encode(value):
                         if is_dataclass(value):
@@ -1142,7 +1395,7 @@ def main() -> int:
     args = parse_args()
     try:
         return run(args)
-    except (DeploymentAbort, ImuError, MicroDuckJ288Error, OSError, RuntimeError) as exc:
+    except (DeploymentAbort, ImuError, MicroDuckJ288Error, OSError, RuntimeError, ValueError) as exc:
         print(f"REAL DEPLOYMENT STOP: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
 

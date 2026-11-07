@@ -9,8 +9,8 @@ from mjlab.envs import ManagerBasedRlEnv
 from mjlab.rl import RslRlVecEnvWrapper
 from mjlab.tasks.registry import load_env_cfg,load_rl_cfg,load_runner_cls
 from mjlab.rl.exporter_utils import get_base_metadata,attach_metadata_to_onnx
-from mjlab_microduck.tasks.microduck_s288_v0_backlash_dr_env_cfg import TASK_ID,METADATA
-from mjlab_microduck.tasks.s288_v0_contract import ACTOR_TERMS
+from mjlab_microduck.tasks.microduck_s288_velocity_env_cfg import TASK_ID
+from mjlab_microduck.tasks.policy_contract import ACTOR_TERMS,METADATA
 
 
 def main():

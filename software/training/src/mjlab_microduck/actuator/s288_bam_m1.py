@@ -1,4 +1,4 @@
-# Curated S288 rotor-only dependency subset; see THIRD_PARTY_NOTICES.md.
+# S288 velocity dependency subset; see THIRD_PARTY_NOTICES.md.
 """mjlab adapter for BAM's fitted Unitree S288 M1 model.
 
 The bundled bam.mjlab.BamActuator supports VoltageControlledActuator only.
@@ -37,6 +37,8 @@ class S288BamM1ActuatorCfg(ActuatorCfg):
     kp_sdk: float
     kd_sdk: float
     output_torque_limit_nm_12v: float
+    # Legacy limit field above is an absolute Nm ceiling when this is false.
+    torque_limit_scales_with_voltage: bool = True
     # Optional, disabled until a measured S288 frequency response identifies it.
     torque_response_tau_s: float = 0.0
     torque_response_tau_range_s: tuple[float, float] | None = None
@@ -45,6 +47,10 @@ class S288BamM1ActuatorCfg(ActuatorCfg):
     motor_strength_scale_range: tuple[float, float] | None = None
     # (absolute output speed [rad/s], available torque fraction), starting at 0.
     torque_speed_curve: tuple[tuple[float, float], ...] | None = None
+    electrical_resistance_ohm: float | None = None
+    electrical_kt_nm_per_a: float | None = None
+    electrical_ke_v_s_per_rad: float | None = None
+    electrical_vlim_scale: float = 1.0
     vin: float = 12.0
     vin_range: tuple[float, float] | None = None
     vin_drop_gain_range: tuple[float, float] | None = None
@@ -55,9 +61,9 @@ class S288BamM1ActuatorCfg(ActuatorCfg):
         super().__post_init__()
         if self.transmission_type != TransmissionType.JOINT:
             raise ValueError("S288 BAM M1 requires joint transmission")
-        if min(self.gear_ratio, self.kp_sdk, self.kd_sdk, self.vin,
-               self.output_torque_limit_nm_12v) <= 0:
-            raise ValueError("S288 ratio, gains and voltage must be positive")
+        if min(self.gear_ratio, self.kp_sdk, self.vin,
+               self.output_torque_limit_nm_12v) <= 0 or self.kd_sdk < 0:
+            raise ValueError("S288 ratio, Kp and voltage must be positive; Kd must be non-negative")
         if self.vin_range is not None and not 0 < self.vin_range[0] <= self.vin_range[1]:
             raise ValueError("invalid S288 vin_range")
         if self.vin_drop_gain_range is not None and not (
@@ -66,6 +72,13 @@ class S288BamM1ActuatorCfg(ActuatorCfg):
             raise ValueError("invalid S288 vin_drop_gain_range")
         if self.vin_min is not None and self.vin_min <= 0:
             raise ValueError("S288 vin_min must be positive")
+        electrical = (self.electrical_resistance_ohm, self.electrical_kt_nm_per_a,
+                      self.electrical_ke_v_s_per_rad)
+        if any(value is not None for value in electrical):
+            if any(value is None or value <= 0 for value in electrical):
+                raise ValueError("S288 electrical voltage model needs positive R, Kt and Ke")
+            if self.electrical_vlim_scale <= 0:
+                raise ValueError("S288 electrical_vlim_scale must be positive")
         if self.vin_drop_gain_range is not None and self.vin_min is None:
             raise ValueError("S288 voltage sag requires vin_min")
         if self.torque_response_tau_s < 0:
@@ -94,6 +107,8 @@ class S288BamM1Actuator(FrictionDRBamActuator):
     """BAM M1 PD, voltage saturation and Coulomb/viscous friction."""
 
     cfg: S288BamM1ActuatorCfg
+    fit_model = "m1"
+    fit_actuator = "s288"
 
     def __init__(self, cfg, entity, target_ids, target_names) -> None:
         # bam.mjlab.BamActuator.__init__ rejects the S288's non-voltage-control
@@ -101,8 +116,8 @@ class S288BamM1Actuator(FrictionDRBamActuator):
         # the M1 parameters and mjlab base state here.
         Actuator.__init__(self, cfg, entity, target_ids, target_names)
         params = json.loads(Path(cfg.params_path).read_text(encoding="utf-8"))
-        if (params.get("model"), params.get("actuator")) != ("m1", "s288"):
-            raise ValueError("S288 actuator requires fitted s288/m1 JSON")
+        if (params.get("model"), params.get("actuator")) != (self.fit_model, self.fit_actuator):
+            raise ValueError(f"S288 actuator requires fitted s288/{self.fit_model} JSON")
         self.ratio = float(params["ratio"])
         self.max_torque = float(params["max_torque"])
         # The fitted ceiling was never excited by the identification logs.
@@ -130,7 +145,7 @@ class S288BamM1Actuator(FrictionDRBamActuator):
 
     def edit_spec(self, spec: mujoco.MjSpec, target_names: list[str]) -> None:
         max_vin = max(self.cfg.vin_range) if self.cfg.vin_range else self.cfg.vin
-        force_limit = self.output_torque_limit_nm_12v * max_vin / 12.0
+        force_limit = self.output_torque_limit_nm_12v * (max_vin / 12.0 if self.cfg.torque_limit_scales_with_voltage else 1.0)
         target_set = set(target_names)
         converted = set()
         for mjact in spec.actuators:
@@ -250,9 +265,21 @@ class S288BamM1Actuator(FrictionDRBamActuator):
         strength = getattr(self, "motor_strength_scale", None)
         if strength is not None:
             requested = requested * strength
-        limit = (self.output_torque_limit_nm_12v * vin / 12.0
+        limit = (self.output_torque_limit_nm_12v
+                 * (vin / 12.0 if self.cfg.torque_limit_scales_with_voltage else 1.0)
                  * self._speed_torque_fraction(cmd.vel))
         motor_torque = torch.clamp(requested, -limit, limit)
+        if self.cfg.electrical_resistance_ohm is not None:
+            resistance = self.cfg.electrical_resistance_ohm
+            kt = self.cfg.electrical_kt_nm_per_a
+            ke = self.cfg.electrical_ke_v_s_per_rad
+            rotor_speed = self.cfg.gear_ratio * cmd.vel
+            current_request = motor_torque / (self.cfg.gear_ratio * kt)
+            voltage_request = resistance * current_request + ke * rotor_speed
+            voltage_limit = vin * self.cfg.electrical_vlim_scale
+            voltage_actual = torch.clamp(voltage_request, -voltage_limit, voltage_limit)
+            current_actual = (voltage_actual - ke * rotor_speed) / resistance
+            motor_torque = self.cfg.gear_ratio * kt * current_actual
         if self._torque_state is not None:
             tau = self.torque_response_tau
             alpha = torch.where(
@@ -263,9 +290,13 @@ class S288BamM1Actuator(FrictionDRBamActuator):
             self._torque_state = self._torque_state + alpha * (motor_torque - self._torque_state)
             motor_torque = torch.clamp(self._torque_state, -limit, limit)
             self._torque_state = motor_torque
+        self._update_frictions(cmd, motor_torque)
+        self._prev_motor_torque = motor_torque.detach()
+        return motor_torque
+
+
+    def _update_frictions(self, cmd, motor_torque):
         self._write_frictions(
             torch.full_like(motor_torque, self.friction_base) * self.friction_scale,
             self.friction_viscous,
         )
-        self._prev_motor_torque = motor_torque.detach()
-        return motor_torque

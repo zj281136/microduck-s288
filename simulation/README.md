@@ -1,12 +1,9 @@
-# 仿真模型唯一入口
+# S288 仿真模型
 
-模型文件不搬移或复制成第二份。训练task通过`software/training/src/mjlab_microduck/robot/microduck_constants.py`中的`get_s288_v0_backlash_dr_spec()`构造最终模型。
+唯一训练模型：`software/training/src/mjlab_microduck/robot/microduck/robot_walk_s288_duck.xml`，由 `get_s288_spec()` 加载，EntityCfg 应用 HOME、碰撞参数和 Hybrid/M4 执行器。
 
-1. 载入同目录`microduck/robot_walk_s288_v1.xml`及assets。
-2. 应用V0电池155g和头部Pi18g记账。
-3. 为14个受控关节添加passive backlash hinge。
-4. 在task factory中固定本版本SDK Kp/Kd和0.55Nm限幅，并添加episode间隙DR。
+它保留成功训练时的头部、腿部、传动关节、质量、惯量、碰撞体与质心。模型总质量 741.5g；包含单独的104g电池、21g Pi和23.7g嘴部舵机记账。这些是保留的仿真数值，不是对任何复刻整机的重新称重。
 
-直接打开基础XML不能代替最终训练spec。参数来源见[parameter_sources.csv](parameter_sources.csv)，精确观测见[控制接口](../docs/05-control-contract.md)，训练启动见[训练教程](../docs/06-training.md)。
+没有旧版 NPF550 工厂或额外电池替换逻辑；不添加旧任务的传动间隙 DR。M4 参数和固定0.6Nm限幅由当前配置给出。
 
-本阶段未编译/运行仿真。历史静态编译结果见验证记录；匹配ONNX的闭环MuJoCo运行流程仍待验证。
+[控制接口](../docs/05-control-contract.md) · [训练教程](../docs/TRAIN_GUIDE.md) · [参数来源](parameter_sources.csv)

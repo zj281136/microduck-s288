@@ -1,23 +1,15 @@
-# S288 rotor-only 强化学习训练
+# Microduck S288 Velocity
 
-本包注册一个 MicroDuck task：
-
-```text
-Mjlab-Velocity-Flat-S288-v0-BacklashDR-RotorOnly61D-MicroDuck
-```
-
-## 安装与训练
+唯一任务：`Mjlab-Velocity-Flat-S288-MicroDuck`。
 
 ```bash
-cd software/training
 uv sync --locked
-uv run python -m mjlab.scripts.train \
-  Mjlab-Velocity-Flat-S288-v0-BacklashDR-RotorOnly61D-MicroDuck \
-  --env.scene.num-envs 4096
+uv run python -m mjlab.scripts.train Mjlab-Velocity-Flat-S288-MicroDuck --env.scene.num-envs 64 --agent.max-iterations 5
+uv run python -m mjlab.scripts.train Mjlab-Velocity-Flat-S288-MicroDuck --env.scene.num-envs 4096 --agent.max-iterations 5000
 ```
 
-运行环境为 Python 3.12、Linux 和匹配 CUDA 依赖的 NVIDIA GPU。Pi 只安装部署依赖，不安装此训练环境。
+Hybrid + M4，Kp15/Kd0，固定 ±0.6 Nm，无电气模型。完整说明、play、resume 和归一化 ONNX 导出见[训练教程](../../docs/TRAIN_GUIDE.md)。
 
-`src/mjlab_microduck/tasks/` 包含配方、MDP、runner 和观测约定；`actuator/` 包含 S288 M1 BAM；`robot/` 包含 HOME、模型工厂、MJCF 和网格。共享配置仅保留本 task 构造链需要的部分。
+执行器复用共享 adapter 的模型编辑、摩擦写入和 DR 方法；`s288_bam_m1.py` 是保留的内部基类，实际注册并执行的是 `S288BamM4Actuator`，不会退化成 M1。
 
-模型输出用于仿真 play；部署前需通过官方 runner 路径导出带归一化的 ONNX，并同步维护 manifest。详细命令见[训练与导出教程](../../docs/06-training.md)。
+CPU 配置回归：`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --with pytest pytest tests/ -q`。

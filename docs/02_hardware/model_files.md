@@ -23,9 +23,9 @@ STL 不保留完整参数化设计，通常也不能据文件本身可靠确认�
 | 模型与可编辑零件 | [v0.1.0 下载](https://github.com/laotawayer/microduck/releases/tag/v0.1.0) | 外链提供 |
 
 | 装配图 | [装配图说明](../../assembly-drawings/README.md) | 图纸和紧固件细节 TODO |
-| 训练基础 MJCF | `software/training/src/mjlab_microduck/robot/microduck/robot_walk_s288_v1.xml` | 已有 |
+| 训练基础 MJCF | `software/training/src/mjlab_microduck/robot/microduck/robot_walk_s288_duck.xml` | 已有 |
 | 仿真 mesh | 上述目录中的 `assets/` | 已有；不能默认当作打印件 |
-| 最终模型构造 | `microduck_constants.py` 中 `get_s288_v0_backlash_dr_spec()` | 应与 task 配置结合阅读 |
+| 最终模型构造 | `microduck_constants.py` 中 `get_s288_spec()` | 应与 task 配置结合阅读 |
 
 路径相对仓库根目录。最终训练模型不仅是基础 XML：模型工厂还应用 V0 质量设置并加入被动 hinge，task 再设置增益及 DR。
 

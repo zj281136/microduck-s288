@@ -19,6 +19,10 @@ from pathlib import Path
 import numpy as np
 import onnxruntime as ort
 
+# Opt-in per deployment entry. None preserves ONNX Runtime's existing defaults.
+ONNX_INTRA_OP_THREADS: int | None = None
+ONNX_INTER_OP_THREADS: int | None = None
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR.parent))
@@ -260,7 +264,16 @@ def load_policy(
     resolved = path.expanduser().resolve()
     if not resolved.is_file():
         raise DeploymentAbort(f"ONNX file not found: {resolved}")
-    session = ort.InferenceSession(str(resolved), providers=["CPUExecutionProvider"])
+    options = None
+    if ONNX_INTRA_OP_THREADS is not None or ONNX_INTER_OP_THREADS is not None:
+        options = ort.SessionOptions()
+        if ONNX_INTRA_OP_THREADS is not None:
+            options.intra_op_num_threads = ONNX_INTRA_OP_THREADS
+        if ONNX_INTER_OP_THREADS is not None:
+            options.inter_op_num_threads = ONNX_INTER_OP_THREADS
+    session = ort.InferenceSession(
+        str(resolved), sess_options=options, providers=["CPUExecutionProvider"]
+    )
     inputs = session.get_inputs()
     outputs = session.get_outputs()
     if len(inputs) != 1 or inputs[0].shape != [1, expected_obs_size]:

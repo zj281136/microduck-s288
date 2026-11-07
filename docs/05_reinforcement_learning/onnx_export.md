@@ -7,11 +7,11 @@
 - PT：用于同 task 的 play、训练恢复和导出。
 - ONNX：由 ONNX Runtime 推理，用于 Pi 运行和对应仿真验证。
 
-本仓公开策略为原鸭头 V0 BacklashDR rotor-only61D，不能用其他观测或机械配置的 checkpoint 替换。
+本仓公开策略为S288 Hybrid/M4 rotor-only 61D，不能用其他观测或机械配置的 checkpoint 替换。
 
 ## 2. 导出前核对
 
-确认 task、checkpoint、关节顺序、HOME、SDK增益、action scale 和归一化来自同一配置。已有的 `model_9999` manifest 可作为格式参考，不能将其中哈希复制给新文件。
+确认 task、checkpoint、关节顺序、HOME、SDK增益、action scale 和归一化来自同一配置。已有的 `model_4999` manifest 可作为格式参考，不能将其中哈希复制给新文件。
 
 <!-- TODO: 插入 checkpoint、配置文件和 ONNX 的关系示意图 -->
 
@@ -21,7 +21,7 @@
 
 ```bash
 uv run python scripts/export.py \
-  --checkpoint-file /path/to/model_9999.pt \
+  --checkpoint-file /path/to/model_4999.pt \
   --onnx-file ../deployment/teleop/scripts/models/NEW_POLICY.onnx
 ```
 
@@ -81,3 +81,5 @@ sha256sum ../deployment/teleop/scripts/models/NEW_POLICY.onnx
 完成接口、数值与所需闭环验证后，显式选择新ONNX，并使用本机rotor标定。先受保护零速站立，再固定低速；不得为通过测试先修改Kp/Kd、过滤target或提高超速阈值。
 
 详细命令和停止流程见[真机部署](../07-deployment.md)。
+
+当前部署入口还固定校验发布模型SHA256。更换自己的模型时，按[训练教程](../TRAIN_GUIDE.md)更新对应manifest和入口哈希，先完成数值和仿真检查。

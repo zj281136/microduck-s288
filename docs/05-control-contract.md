@@ -41,7 +41,7 @@ q_target = HOME + action_scale × action
 
 `last_action` 保存上一策略输出，既不是 `q_target`，也不是 `q_target-q_rotor`。把 tracking error 填进这 14 维会改变网络的物理输入含义。
 
-固定 command 部署可对速度指令做 smoothstep；这不等于过滤 policy action。当前 head/leg 目标低通、额外 target slew 和额外 PD projection 均关闭。
+键盘逐次修改速度 command；不对 policy action 做滤波。当前 head/leg 目标低通、额外 target slew 和额外 PD projection 均关闭。
 
 ## 4. 主动与被动状态
 
@@ -49,27 +49,24 @@ q_target = HOME + action_scale × action
 
 policy 读取 active q/qdot，不读取 passive，也不读取 active+passive。原始 XML 中被动关节可能与主动关节交错，因此代码通过名称和 servo helper 选择主动关节，不能硬编码实体中全部 joint 的前 14 项。
 
-每个 episode 对被动关节采样单侧 1–2° 范围，总 play 为 2–4°；初始相对角在该 episode 限位内采样。该范围用于训练覆盖，不作为每颗真实电机的已辨识参数。
+当前 MJCF 自带被动传动关节，保留成功训练版本的参数。本版不使用旧任务的每 episode 传动间隙随机化事件。
 
-## 5. S288 M1 BAM
+## 5. Hybrid + BAM M4
 
 | 参数 | 配置 |
 | --- | --- |
-| SDK Kp / Kd | `1.3545e-4` / `3.74e-6` |
-| 齿比 | `288.35` |
-| policy / physics | 50 Hz / 5 ms |
-| 输出 torque envelope | 0.55 Nm @ 12 V，随电压缩放 |
-| voltage DR | 11–12 V |
-| command lag | 0–5 physics step，即 0–25 ms |
-| passive damping / armature | 0.01 / 0.001 |
+| Kp / Kd 协议值 | 15 / 0 |
+| SDK Kp / Kd | 15/1280000 / 0 |
+| 齿比、M4 ratio | 288.35、1.0 |
+| policy / physics | 50 Hz / 5 ms；decimation=4 |
+| 仿真限幅 | 固定 ±0.6 Nm，不按电压缩放 |
+| command lag DR | 3–6 physics step |
+| 拟合 command delay | 0.0029063016859105155s，另按物理步做分数延迟插值 |
+| 电气模型 / voltage DR | 无 / 无 |
 
-SDK 增益不是直接以 Nm/rad 表示的刚度。adapter 使用 `gear_ratio² × M1 ratio` 将 PD 请求映射到输出力矩，再施加当前配置的输出限幅；M1 同时提供库仑和粘性摩擦参数。
+输出 PD 请求为 `gear_ratio² × ratio × (kp_sdk × (goal-q) - kd_sdk × qdot)`，本配置等效刚度约 0.97436 Nm/rad。M4 在此基础上计算载荷相关库仑/Stribeck 摩擦及粘性摩擦。公式与参数见[执行器说明](07_engineering_notes/pd_vs_bam.md)。
 
-BAM JSON 内 `max_torque=14.91` 是拟合文件中的参数，不是当前 task 的输出限幅。应查看 task 对 `output_torque_limit_nm_12v=0.55` 的显式配置。
-
-0.55 Nm 是仿真执行器限幅；Pi 不通过额外 PD projection 强行复制一个软件力矩包络，真实电机的固件限幅和反馈力矩口径需要分别理解。
-
-command lag 表示目标在若干物理步后生效，用于覆盖传输和调度时延近似。它不是完整机械跟随相位差，不能把实测相位延迟不加区分地再叠加一遍。
+JSON 的拟合 `max_torque≈0.4586` 保留作为辨识记录，仿真采用用户选定的独立 0.6 Nm 限幅。Pi 直接发送固件 Hybrid 目标和增益，没有另行设置 0.6 Nm 硬件限幅。
 
 ## 6. 真机反馈来源
 
@@ -84,7 +81,7 @@ OutPos 仍写入日志，便于比较输出侧与转子侧差异；它不进入 
 ```text
 input  [1, 61]
 output [1, 14]
-contract: s288_v0_backlash_dr_rotor_pd_m1_61d_v1
+contract: microduck_s288_velocity_61d_v1
 ```
 
 接口不匹配时应重新核对模型与配置，不通过删除校验来使错误模型进入控制循环。

@@ -1,7 +1,7 @@
 schema_version: 1
 documentation_only: true
 hardware_revision: null
-configuration_id: original_head_s288_v0
+configuration_id: microduck_s288_velocity
 joint_order:
 - left_hip_yaw
 - left_hip_roll
@@ -18,5 +18,5 @@ joint_order:
 - right_knee
 - right_ankle
 control_frequency_hz: 50
-policy: microduck_s288_v0_backlash_dr_rotor_pd_m1
+policy: microduck_s288_velocity
 imu_mounting_verified: null

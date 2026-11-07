@@ -580,12 +580,12 @@ class MicroDuck288:
     def states_in_policy_order(self) -> list[JointState]:
         return [self.latest[JOINT_TO_MOTOR_ID[name]] for name in POLICY_JOINT_ORDER]
 
-    def safe_stop(self, rounds: int = 3) -> None:
+    def safe_stop(self, rounds: int = 3, *, motor_ids=None) -> None:
         """Best-effort zero-gain/zero-torque command to every motor."""
         if self.closed:
             return
         for _ in range(rounds):
-            for motor_id in BUS_MOTOR_IDS:
+            for motor_id in (BUS_MOTOR_IDS if motor_ids is None else motor_ids):
                 try:
                     self.sdk.write_control_packet(
                         motor_id=motor_id, pos=0.0, kp=0.0, kd=0.0,

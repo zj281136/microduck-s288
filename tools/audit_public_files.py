@@ -11,7 +11,7 @@ def main():
     root=Path(__file__).resolve().parent.parent
     files=[];flags=[]
     for f in sorted(root.rglob('*')):
-        if not f.is_file() or '.git' in f.parts or '__pycache__' in f.parts:continue
+        if not f.is_file() or '.git' in f.parts or any(x in f.parts for x in ('.venv','__pycache__','.pytest_cache','logs','outputs','wandb')):continue
         rel=str(f.relative_to(root))
         if args.output and f.resolve()==args.output.resolve():continue
         files.append(dict(path=rel,bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest()))
