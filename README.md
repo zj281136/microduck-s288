@@ -103,6 +103,6 @@ docs/                   上面五篇主教程及补充资料
 
 ## 致谢与许可
 
-这个项目基于 [Pollen Robotics Microduck](https://github.com/pollen-robotics/microduck) 和 [Microduck RL](https://github.com/pollen-robotics/microduck_rl)，也用到了 mjlab、Rhoban BAM 与 UniArmL1 的工作。感谢原作者开放设计与代码，也感谢 microduck-replica 对复刻资料的整理。
+这个项目基于 [Pollen Robotics Microduck](https://github.com/pollen-robotics/microduck) 和 [Microduck RL](https://github.com/pollen-robotics/microduck_rl)，也用到了 mjlab、Rhoban BAM 与 UniArmL1 的工作。感谢原作者开放设计与代码。
 
 仓库包含不同来源的代码与资源，使用和再发布时请同时查看 [NOTICE](NOTICE.md) 与 [第三方许可说明](THIRD_PARTY_NOTICES.md)。
